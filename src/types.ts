@@ -18,4 +18,5 @@ export interface Run {
   programId: string;
   startTime: string;
   program?: Program;
+  songIds?: string[];
 }

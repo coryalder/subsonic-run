@@ -73,12 +73,13 @@ export default async function runRoutes(fastify: FastifyInstance) {
 
   // Start Run Handler
   fastify.post('/start-run', async (request, reply) => {
-    const { name, programId } = request.body as { name: string, programId: string };
+    const { name, programId, songIds } = request.body as { name: string, programId: string, songIds?: string[] };
     
     const runData: Run = {
       name,
       programId,
-      startTime: new Date().toISOString()
+      startTime: new Date().toISOString(),
+      songIds: songIds || []
     };
 
     const dataDir = path.join(process.cwd(), 'data');

@@ -17,13 +17,28 @@
             </div>
             <div class="song-info">
                 <div class="song-title">{{ song.title }}</div>
-                <div class="song-meta">{{ song.artist }} - {{ song.album }}</div>
+                <div class="song-meta">
+                    {{ song.artist }} - {{ song.album }}
+                    {% if song.bpm %}
+                        <span style="margin-left: 0.5rem; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; background: {% if song.bpm >= 140 %}#ffebee; color: #c62828;{% else %}#e3f2fd; color: #1565c0;{% endif %}">
+                            {% if song.bpm >= 140 %}Fast{% else %}Slow{% endif %}
+                        </span>
+                    {% endif %}
+                </div>
             </div>
-            <div style="font-size: 0.9rem; color: #666; text-align: right;">
-                {% if song.bpm %}
-                    <div style="font-weight: bold; color: #1db954;">{{ song.bpm }} BPM</div>
-                {% endif %}
-                <div>{{ song.duration | formatDuration }}</div>
+            <div style="font-size: 0.9rem; color: #666; text-align: right; display: flex; align-items: center; gap: 1rem;">
+                <div>
+                    {% if song.bpm %}
+                        <div style="font-weight: bold; color: #1db954;">{{ song.bpm }} BPM</div>
+                    {% endif %}
+                    <div>{{ song.duration | formatDuration }}</div>
+                </div>
+                <button type="button" 
+                        class="add-song-btn"
+                        style="background: #1db954; color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: none;"
+                        onclick="window.addSongToPlaylist({id: '{{ song.id }}', title: '{{ song.title }}', duration: {{ song.duration }}, bpm: {{ song.bpm | default(0) }}})">
+                    +
+                </button>
             </div>
         </div>
     {% else %}
