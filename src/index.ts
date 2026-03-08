@@ -147,18 +147,32 @@ fastify.get('/search', async (request, reply) => {
     return reply.view('artists.njk', { artists: [], currentView: 'artists' });
   }
 
-  const response = await subsonic.search3({ query });
+  // Fetch search results from Subsonic
+  const [searchResponse, playlistsResponse] = await Promise.all([
+    subsonic.search3({ query }),
+    subsonic.getPlaylists()
+  ]);
+
   let artists: any[] = [];
   let albums: any[] = [];
   let songs: any[] = [];
+  let playlists: any[] = [];
 
-  if (response.status === 'ok' && response.searchResult3) {
-    artists = response.searchResult3.artist || [];
-    albums = response.searchResult3.album || [];
-    songs = response.searchResult3.song || [];
+  if (searchResponse.status === 'ok' && searchResponse.searchResult3) {
+    artists = searchResponse.searchResult3.artist || [];
+    albums = searchResponse.searchResult3.album || [];
+    songs = searchResponse.searchResult3.song || [];
   }
 
-  return reply.view('search.njk', { artists, albums, songs, query });
+  // Manually filter playlists (Subsonic search3 doesn't typically include them)
+  if (playlistsResponse.status === 'ok' && playlistsResponse.playlists?.playlist) {
+    const lowerQuery = query.toLowerCase();
+    playlists = playlistsResponse.playlists.playlist.filter((p: any) => 
+      p.name.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  return reply.view('search.njk', { artists, albums, songs, playlists, query });
 });
 
 // HTMX route

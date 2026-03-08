@@ -40,6 +40,25 @@
         </ul>
     {% endif %}
 
+    {% if playlists.length > 0 %}
+        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Playlists</h3>
+        <ul class="picker-grid" style="grid-auto-columns: 140px;">
+            {% for playlist in playlists %}
+                <li class="card" hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    {% if playlist.coverArt %}
+                        <img src="/artwork/{{ playlist.coverArt }}" alt="{{ playlist.name }}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                    {% else %}
+                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                            No Image
+                        </div>
+                    {% endif %}
+                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">{{ playlist.name }}</div>
+                    <div style="font-size: 0.75rem; color: #666;">{{ playlist.songCount }} songs</div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     {% if songs.length > 0 %}
         <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Songs</h3>
         <div style="background: white; border-radius: 8px; overflow: hidden; margin: 0 0.5rem;">
@@ -62,7 +81,7 @@
         </div>
     {% endif %}
 
-    {% if artists.length == 0 and albums.length == 0 and songs.length == 0 %}
+    {% if artists.length == 0 and albums.length == 0 and songs.length == 0 and playlists.length == 0 %}
         <div style="padding: 2rem; text-align: center; color: #666;">
             No results found for "{{ query }}"
         </div>
