@@ -11,7 +11,7 @@ export default async function runRoutes(fastify: FastifyInstance) {
       { id: 'p3', title: 'Speed Intervals', duration: '40m', description: 'High-intensity bursts with recovery' },
       { id: 'p4', title: 'Endurance Build', duration: '60m', description: 'Longer blocks of steady running' }
     ];
-    return reply.view('createRun.njk', { programs });
+    return reply.view('create-run.njk', { programs });
   });
 
   // View Runs Page

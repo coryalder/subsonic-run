@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import view from '@fastify/view';
 import nunjucks from 'nunjucks';
 import fastifyStatic from '@fastify/static';
+import formbody from '@fastify/formbody';
 import 'dotenv/config';
 import musicRoutes from './music.js';
 import runRoutes from './run.js';
@@ -16,6 +17,8 @@ const __dirname = path.dirname(__filename);
 const fastify = Fastify({
   logger: true
 });
+
+fastify.register(formbody);
 
 const subsonic = new SubsonicAPI({
   url: process.env.SUBSONIC_URL || '',
