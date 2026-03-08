@@ -1,6 +1,13 @@
 <div class="picker-widget">
     <div class="picker-header">
-        {% block header %}{% endblock %}
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            {% block header %}{% endblock %}
+        </div>
+        <div class="picker-tabs">
+            <a hx-get="/artists" hx-target="closest .picker-widget" hx-swap="outerHTML" class="{% if currentView == 'artists' %}active{% endif %}">Artists</a>
+            <a hx-get="/albums" hx-target="closest .picker-widget" hx-swap="outerHTML" class="{% if currentView == 'albums' %}active{% endif %}">Albums</a>
+            <a hx-get="/playlists" hx-target="closest .picker-widget" hx-swap="outerHTML" class="{% if currentView == 'playlists' %}active{% endif %}">Playlists</a>
+        </div>
     </div>
     <div class="picker-content" {% block content_attrs %}{% endblock %}>
         {% block content %}{% endblock %}

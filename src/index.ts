@@ -77,7 +77,7 @@ fastify.get('/artists', async (request, reply) => {
   if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
     artists = artistsResponse.artists.index.flatMap(i => i.artist);
   }
-  return reply.view('artists.njk', { artists });
+  return reply.view('artists.njk', { artists, currentView: 'artists' });
 });
 
 // Artist detail (albums)
@@ -90,7 +90,7 @@ fastify.get('/artist/:id', async (request, reply) => {
     artist = response.artist;
     albums = response.artist.album || [];
   }
-  return reply.view('albums.njk', { artist, albums });
+  return reply.view('albums.njk', { artist, albums, currentView: 'artists' });
 });
 
 // Albums list (general)
@@ -100,7 +100,7 @@ fastify.get('/albums', async (request, reply) => {
   if (response.status === 'ok' && response.albumList?.album) {
     albums = response.albumList.album;
   }
-  return reply.view('albums.njk', { albums, title: 'Newest Albums' });
+  return reply.view('albums.njk', { albums, title: 'Newest Albums', currentView: 'albums' });
 });
 
 // Album detail (songs)
@@ -113,7 +113,7 @@ fastify.get('/album/:id', async (request, reply) => {
     album = response.album;
     songs = response.album.song || [];
   }
-  return reply.view('songs.njk', { album, songs });
+  return reply.view('songs.njk', { album, songs, currentView: 'albums' });
 });
 
 // Playlists list
@@ -123,7 +123,7 @@ fastify.get('/playlists', async (request, reply) => {
   if (response.status === 'ok' && response.playlists.playlist) {
     playlists = response.playlists.playlist;
   }
-  return reply.view('playlists.njk', { playlists });
+  return reply.view('playlists.njk', { playlists, currentView: 'playlists' });
 });
 
 // Playlist detail (songs)
@@ -136,7 +136,7 @@ fastify.get('/playlist/:id', async (request, reply) => {
     playlist = response.playlist;
     songs = response.playlist.entry || [];
   }
-  return reply.view('songs.njk', { playlist, songs });
+  return reply.view('songs.njk', { playlist, songs, currentView: 'playlists' });
 });
 
 // HTMX route
