@@ -1,0 +1,23 @@
+<h2>{% if album %}{{ album.artist }} - {{ album.title }}{% else %}{{ playlist.name }}{% endif %}</h2>
+<button hx-get="{% if album %}/artist/{{ album.parent }}{% else %}/playlists{% endif %}" hx-target="#main-content" style="margin-bottom: 1rem;">&larr; Back</button>
+
+<div style="background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;">
+    {% for song in songs %}
+        <div class="list-item">
+            <div style="width: 40px; height: 40px; background: #eee; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                {% if song.coverArt %}
+                    <img src="/artwork/{{ song.coverArt }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% endif %}
+            </div>
+            <div class="song-info">
+                <div class="song-title">{{ song.title }}</div>
+                <div class="song-meta">{{ song.artist }} - {{ song.album }}</div>
+            </div>
+            <div style="font-size: 0.9rem; color: #666;">
+                {{ song.duration | formatDuration }}
+            </div>
+        </div>
+    {% else %}
+        <div style="padding: 20px;">No songs found.</div>
+    {% endfor %}
+</div>

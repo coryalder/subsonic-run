@@ -1,0 +1,17 @@
+<h2>Artists</h2>
+<ul class="grid">
+    {% for artist in artists %}
+        <li class="card" hx-get="/artist/{{ artist.id }}" hx-target="#main-content" hx-push-url="true">
+            {% if artist.coverArt %}
+                <img src="/artwork/{{ artist.coverArt }}" alt="{{ artist.name }}">
+            {% else %}
+                <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                    No Image
+                </div>
+            {% endif %}
+            <div>{{ artist.name }}</div>
+        </li>
+    {% else %}
+        <li>No artists found.</li>
+    {% endfor %}
+</ul>

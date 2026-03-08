@@ -1,44 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subsonic Run</title>
-    <script src="/static/htmx.min.js"></script>
-    <style>
-        body { font-family: sans-serif; padding: 2rem; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .status { color: green; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Subsonic Run</h1>
-        <p>Status: <span class="status" style="color: {{ 'green' if connected else 'red' }}">{{ status }}</span></p>
-        
-        <div id="dynamic-content">
-            <button hx-get="/clicked" hx-target="#dynamic-content" hx-swap="outerHTML">
-                Click me for dynamic content
-            </button>
-        </div>
+{% extends "layout.njk" %}
 
-        <h2>Artists</h2>
-        <ul id="artist-list" style="list-style: none; display: flex; flex-wrap: wrap; gap: 1rem; padding: 0;">
-            {% for artist in artists %}
-                <li style="width: 150px; text-align: center;">
-                    {% if artist.coverArt %}
-                        <img src="/artwork/{{ artist.coverArt }}" alt="{{ artist.name }}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">
-                    {% else %}
-                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 8px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                            No Image
-                        </div>
-                    {% endif %}
-                    <div>{{ artist.name }}</div>
-                </li>
-            {% else %}
-                <li>No artists found.</li>
-            {% endfor %}
-        </ul>
+{% block content %}
+    <div id="status-area">
+        <p>Status: <span class="status" style="color: {{ 'green' if connected else 'red' }}">{{ status }}</span></p>
     </div>
-</body>
-</html>
+
+    <div id="main-content" hx-get="/artists" hx-trigger="load">
+        <p>Loading artists...</p>
+    </div>
+{% endblock %}
+

@@ -30,36 +30,103 @@ fastify.register(fastifyStatic, {
 });
 
 // Register Nunjucks
+const env = nunjucks.configure(path.join(__dirname, 'views'), {
+  autoescape: true,
+  noCache: true // Useful for development
+});
+
+
 fastify.register(view, {
   engine: {
     nunjucks: nunjucks
   },
-  root: path.join(__dirname, 'views'),
+  options: {
+    onConfigure: (env: nunjucks.Environment) => {
+      env.addFilter('formatDuration', (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      });
+    }
+  },
+  root: path.join(__dirname, 'views')
 });
 
 // Basic route
 fastify.get('/', async (request, reply) => {
   let status = 'Connecting...';
   let connected = false;
-  let artists: any[] = [];
   try {
     const response = await subsonic.ping();
     if (response.status === 'ok') {
       status = `Connected to Subsonic (${process.env.SUBSONIC_URL})`;
       connected = true;
-      
-      const artistsResponse = await subsonic.getArtists();
-      if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
-        // Flatten the artist list from the Subsonic response structure
-        artists = artistsResponse.artists.index.flatMap(i => i.artist);
-      }
     } else {
       status = `Error: ${response.status}`;
     }
   } catch (err) {
     status = 'Connection failed';
   }
-  return reply.view('index.njk', { status, connected, artists });
+  return reply.view('index.njk', { status, connected });
+});
+
+// Artists fragment
+fastify.get('/artists', async (request, reply) => {
+  const artistsResponse = await subsonic.getArtists();
+  let artists: any[] = [];
+  if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
+    artists = artistsResponse.artists.index.flatMap(i => i.artist);
+  }
+  return reply.view('artists.njk', { artists });
+});
+
+// Artist detail (albums)
+fastify.get('/artist/:id', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const response = await subsonic.getArtist({ id });
+  let artist = null;
+  let albums: any[] = [];
+  if (response.status === 'ok') {
+    artist = response.artist;
+    albums = response.artist.album || [];
+  }
+  return reply.view('albums.njk', { artist, albums });
+});
+
+// Album detail (songs)
+fastify.get('/album/:id', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const response = await subsonic.getAlbum({ id });
+  let album = null;
+  let songs: any[] = [];
+  if (response.status === 'ok') {
+    album = response.album;
+    songs = response.album.song || [];
+  }
+  return reply.view('songs.njk', { album, songs });
+});
+
+// Playlists list
+fastify.get('/playlists', async (request, reply) => {
+  const response = await subsonic.getPlaylists();
+  let playlists: any[] = [];
+  if (response.status === 'ok' && response.playlists.playlist) {
+    playlists = response.playlists.playlist;
+  }
+  return reply.view('playlists.njk', { playlists });
+});
+
+// Playlist detail (songs)
+fastify.get('/playlist/:id', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const response = await subsonic.getPlaylist({ id });
+  let playlist = null;
+  let songs: any[] = [];
+  if (response.status === 'ok') {
+    playlist = response.playlist;
+    songs = response.playlist.entry || [];
+  }
+  return reply.view('songs.njk', { playlist, songs });
 });
 
 // HTMX route

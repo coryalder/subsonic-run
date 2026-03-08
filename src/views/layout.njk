@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsonic Run</title>
+    <script src="/static/htmx.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 0; margin: 0; background: #f4f4f9; }
+        nav { background: #333; color: white; padding: 1rem; display: flex; gap: 1rem; }
+        nav a { color: white; text-decoration: none; cursor: pointer; }
+        nav a:hover { text-decoration: underline; }
+        .container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .status { font-weight: bold; margin-bottom: 1rem; }
+        .grid { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 0; list-style: none; }
+        .card { width: 160px; text-align: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem; }
+        .list-item { padding: 10px; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 1rem; background: white; }
+        .list-item:hover { background: #f0f0f0; cursor: pointer; }
+        .song-info { flex-grow: 1; }
+        .song-title { font-weight: bold; }
+        .song-meta { font-size: 0.9rem; color: #666; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a hx-get="/artists" hx-target="#main-content">Artists</a>
+        <a hx-get="/playlists" hx-target="#main-content">Playlists</a>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
