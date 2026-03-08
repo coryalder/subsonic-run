@@ -7,6 +7,8 @@ import view from '@fastify/view';
 import nunjucks from 'nunjucks';
 import fastifyStatic from '@fastify/static';
 import 'dotenv/config';
+import musicRoutes from './music.js';
+import runRoutes from './run.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +54,12 @@ fastify.register(view, {
   root: path.join(__dirname, 'views')
 });
 
+// Register Music Routes
+fastify.register(musicRoutes, { subsonic });
+
+// Register Run Routes
+fastify.register(runRoutes);
+
 // Basic route
 fastify.get('/', async (request, reply) => {
   let status = 'Connecting...';
@@ -70,158 +78,9 @@ fastify.get('/', async (request, reply) => {
   return reply.view('index.njk', { status, connected });
 });
 
-// Create Run Page
-fastify.get('/create-run', async (request, reply) => {
-  const programs = [
-    { id: 'p1', title: 'Beginner 5K', duration: '30m', description: 'Alternating walking and running' },
-    { id: 'p2', title: 'Tempo Run', duration: '45m', description: 'Steady pace with intensity intervals' },
-    { id: 'p3', title: 'Speed Intervals', duration: '40m', description: 'High-intensity bursts with recovery' },
-    { id: 'p4', title: 'Endurance Build', duration: '60m', description: 'Longer blocks of steady running' }
-  ];
-  return reply.view('createRun.njk', { programs });
-});
-
-// Start Run Handler
-fastify.post('/start-run', async (request, reply) => {
-  const { name, programId } = request.body as { name: string, programId: string };
-  return `
-    <div style="background: white; border-radius: 12px; padding: 2rem; border: 1px solid #ddd; text-align: center;">
-      <h2 style="color: #1db954;">Run Started!</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Program ID:</strong> ${programId}</p>
-      <a href="/" style="display: inline-block; margin-top: 1.5rem; color: #1db954; text-decoration: none; font-weight: bold;">&larr; Return to Library</a>
-    </div>
-  `;
-});
-
-// Artists fragment
-fastify.get('/artists', async (request, reply) => {
-  const artistsResponse = await subsonic.getArtists();
-  let artists: any[] = [];
-  if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
-    artists = artistsResponse.artists.index.flatMap(i => i.artist);
-  }
-  return reply.view('artists.njk', { artists, currentView: 'artists' });
-});
-
-// Artist detail (albums)
-fastify.get('/artist/:id', async (request, reply) => {
-  const { id } = request.params as { id: string };
-  const response = await subsonic.getArtist({ id });
-  let artist = null;
-  let albums: any[] = [];
-  if (response.status === 'ok') {
-    artist = response.artist;
-    albums = response.artist.album || [];
-  }
-  return reply.view('albums.njk', { artist, albums, currentView: 'artists' });
-});
-
-// Albums list (general)
-fastify.get('/albums', async (request, reply) => {
-  const response = await subsonic.getAlbumList({ type: 'newest', size: 50 });
-  let albums: any[] = [];
-  if (response.status === 'ok' && response.albumList?.album) {
-    albums = response.albumList.album;
-  }
-  return reply.view('albums.njk', { albums, title: 'Newest Albums', currentView: 'albums' });
-});
-
-// Album detail (songs)
-fastify.get('/album/:id', async (request, reply) => {
-  const { id } = request.params as { id: string };
-  const response = await subsonic.getAlbum({ id });
-  let album = null;
-  let songs: any[] = [];
-  if (response.status === 'ok') {
-    album = response.album;
-    songs = response.album.song || [];
-  }
-  return reply.view('songs.njk', { album, songs, currentView: 'albums' });
-});
-
-// Playlists list
-fastify.get('/playlists', async (request, reply) => {
-  const response = await subsonic.getPlaylists();
-  let playlists: any[] = [];
-  if (response.status === 'ok' && response.playlists.playlist) {
-    playlists = response.playlists.playlist;
-  }
-  return reply.view('playlists.njk', { playlists, currentView: 'playlists' });
-});
-
-// Playlist detail (songs)
-fastify.get('/playlist/:id', async (request, reply) => {
-  const { id } = request.params as { id: string };
-  const response = await subsonic.getPlaylist({ id });
-  let playlist = null;
-  let songs: any[] = [];
-  if (response.status === 'ok') {
-    playlist = response.playlist;
-    songs = response.playlist.entry || [];
-  }
-  return reply.view('songs.njk', { playlist, songs, currentView: 'playlists' });
-});
-
-// Search functionality
-fastify.get('/search', async (request, reply) => {
-  const { query } = request.query as { query: string };
-  if (!query) {
-    // If query is empty, return to artists or just show empty result
-    return reply.view('artists.njk', { artists: [], currentView: 'artists' });
-  }
-
-  // Fetch search results from Subsonic
-  const [searchResponse, playlistsResponse] = await Promise.all([
-    subsonic.search3({ query }),
-    subsonic.getPlaylists()
-  ]);
-
-  let artists: any[] = [];
-  let albums: any[] = [];
-  let songs: any[] = [];
-  let playlists: any[] = [];
-
-  if (searchResponse.status === 'ok' && searchResponse.searchResult3) {
-    artists = searchResponse.searchResult3.artist || [];
-    albums = searchResponse.searchResult3.album || [];
-    songs = searchResponse.searchResult3.song || [];
-  }
-
-  // Manually filter playlists (Subsonic search3 doesn't typically include them)
-  if (playlistsResponse.status === 'ok' && playlistsResponse.playlists?.playlist) {
-    const lowerQuery = query.toLowerCase();
-    playlists = playlistsResponse.playlists.playlist.filter((p: any) => 
-      p.name.toLowerCase().includes(lowerQuery)
-    );
-  }
-
-  return reply.view('search.njk', { artists, albums, songs, playlists, query });
-});
-
 // HTMX route
 fastify.get('/clicked', async (request, reply) => {
   return '<p>HTMX content loaded successfully!</p>';
-});
-
-// Artwork proxy route
-fastify.get('/artwork/:id', async (request, reply) => {
-  const { id } = request.params as { id: string };
-  try {
-    const response = await subsonic.getCoverArt({ id });
-    
-    if (!response.ok) {
-      return reply.status(response.status).send('Failed to fetch artwork');
-    }
-
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    const buffer = await response.arrayBuffer();
-    
-    return reply.type(contentType).send(Buffer.from(buffer));
-  } catch (err) {
-    fastify.log.error(err);
-    return reply.status(500).send('Internal Server Error');
-  }
 });
 
 const start = async () => {
