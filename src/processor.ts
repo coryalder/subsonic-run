@@ -31,11 +31,15 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     await fs.mkdir(tempDir, { recursive: true });
 
     for (const song of run.songs) {
-      console.log(`Scaffolding download for song: ${song.id} (${song.status})`);
-      // TODO: Implement actual download logic using subsonic.stream
-      // const streamResponse = await subsonic.stream({ id: song.id });
-      // ... save to tempDir
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate work
+      console.log(`Downloading song: ${song.id} (${song.status})`);
+      const response = await subsonic.download({ id: song.id });
+      if (!response.ok) {
+        throw new Error(`Failed to download song ${song.id}: ${response.statusText}`);
+      }
+      const buffer = await response.arrayBuffer();
+      const songPath = path.join(tempDir, `${song.id}.mp3`);
+      await fs.writeFile(songPath, Buffer.from(buffer));
+      console.log(`Song ${song.id} saved to ${songPath}`);
     }
 
     // 2. Stitching phase
