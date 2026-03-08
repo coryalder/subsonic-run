@@ -1,16 +1,18 @@
 import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import yaml from 'js-yaml';
+
+async function loadPrograms() {
+  const filePath = path.join(process.cwd(), 'programs.yaml');
+  const content = await fs.readFile(filePath, 'utf8');
+  return yaml.load(content) as any[];
+}
 
 export default async function runRoutes(fastify: FastifyInstance) {
   // Create Run Page
   fastify.get('/create-run', async (request, reply) => {
-    const programs = [
-      { id: 'p1', title: 'Beginner 5K', duration: '30m', description: 'Alternating walking and running' },
-      { id: 'p2', title: 'Tempo Run', duration: '45m', description: 'Steady pace with intensity intervals' },
-      { id: 'p3', title: 'Speed Intervals', duration: '40m', description: 'High-intensity bursts with recovery' },
-      { id: 'p4', title: 'Endurance Build', duration: '60m', description: 'Longer blocks of steady running' }
-    ];
+    const programs = await loadPrograms();
     return reply.view('create-run.njk', { programs });
   });
 
@@ -47,8 +49,15 @@ export default async function runRoutes(fastify: FastifyInstance) {
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      const run = { ...JSON.parse(content), id };
-      return reply.view('run-detail.njk', { run });
+      const run = JSON.parse(content);
+      
+      // Load program details
+      const programs = await loadPrograms();
+      const program = programs.find(p => p.id === run.programId);
+      
+      return reply.view('run-detail.njk', { 
+        run: { ...run, id, program } 
+      });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(404).send('Run not found');

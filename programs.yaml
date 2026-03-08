@@ -1,0 +1,63 @@
+- id: beginner-5k
+  name: Beginner 5K
+  difficulty: 1
+  description: A gentle introduction to running, alternating between walking and jogging.
+  intervals:
+    - type: warmup
+      duration: 300
+    - type: run
+      duration: 60
+    - type: walk
+      duration: 90
+    - type: run
+      duration: 60
+    - type: walk
+      duration: 90
+    - type: cooldown
+      duration: 300
+
+- id: tempo-run
+  name: Tempo Run
+  difficulty: 3
+  description: Maintain a steady, challenging pace to build aerobic capacity.
+  intervals:
+    - type: warmup
+      duration: 600
+    - type: run
+      duration: 1200
+    - type: cooldown
+      duration: 600
+
+- id: speed-intervals
+  name: Speed Intervals
+  difficulty: 4
+  description: Short bursts of high-intensity running to improve speed and power.
+  intervals:
+    - type: warmup
+      duration: 600
+    - type: run
+      duration: 30
+    - type: walk
+      duration: 60
+    - type: run
+      duration: 30
+    - type: walk
+      duration: 60
+    - type: run
+      duration: 30
+    - type: walk
+      duration: 60
+    - type: cooldown
+      duration: 600
+
+- id: endurance-build
+  name: Endurance Build
+  difficulty: 2
+  description: Longer blocks of steady running at a conversational pace.
+  intervals:
+    - type: warmup
+      duration: 300
+    - type: run
+      duration: 1800
+    - type: cooldown
+      duration: 300

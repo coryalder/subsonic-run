@@ -18,14 +18,33 @@
         </div>
 
         <div style="background: #f9f9f9; border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; margin-bottom: 2rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                 <div style="background: #1db954; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">
-                    Program: {{ run.programId }}
+                    Program: {{ run.program.name | default(run.programId) }}
+                </div>
+                {% if run.program.difficulty %}
+                <div style="font-size: 0.8rem; color: #666;">Difficulty: {{ run.program.difficulty }}/5</div>
+                {% endif %}
+            </div>
+            <p style="margin: 0 0 1rem 0; line-height: 1.5; color: #444;">
+                {{ run.program.description | default("No description available.") }}
+            </p>
+
+            {% if run.program.intervals %}
+            <div style="margin-top: 1.5rem;">
+                <h4 style="margin-bottom: 0.5rem;">Intervals</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for interval in run.program.intervals %}
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: white; border-radius: 6px; border: 1px solid #eee; font-size: 0.9rem;">
+                        <span style="font-weight: bold; color: {% if interval.type == 'run' %}#e74c3c{% elif interval.type == 'walk' %}#3498db{% else %}#95a5a6{% endif %}; text-transform: capitalize;">
+                            {{ interval.type }}
+                        </span>
+                        <span>{{ interval.duration | formatDuration }}</span>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            <p style="margin: 0; line-height: 1.5; color: #444;">
-                This run was started using the <strong>{{ run.programId }}</strong> interval training program.
-            </p>
+            {% endif %}
         </div>
 
         <div style="border-top: 1px solid #eee; padding-top: 1.5rem;">
