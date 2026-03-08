@@ -21,8 +21,45 @@
         .container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .status { font-weight: bold; margin-bottom: 1rem; }
         .grid { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 0; list-style: none; }
-        .card { width: 160px; text-align: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-5px); }
+        
+        /* Picker Widget Styles */
+        .picker-widget {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .picker-header {
+            padding: 1rem 1.5rem;
+            background: #f8f8f8;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .picker-header h2 { margin: 0; font-size: 1.2rem; }
+        .picker-content {
+            padding: 1rem;
+            min-height: 200px;
+        }
+        .picker-grid {
+            display: grid;
+            grid-template-rows: repeat(2, auto);
+            grid-auto-flow: column;
+            grid-auto-columns: 160px;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 0 1rem 0;
+            list-style: none;
+            scrollbar-width: thin;
+        }
+        .picker-grid::-webkit-scrollbar { height: 6px; }
+        .picker-grid::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+        .card { width: 100%; text-align: center; background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem; }
         .list-item { padding: 10px; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 1rem; background: white; }
         .list-item:hover { background: #f0f0f0; cursor: pointer; }
@@ -33,9 +70,9 @@
 </head>
 <body>
     <nav>
-        <a hx-get="/artists" hx-target="#main-content" class="active" hx-on:click="document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); this.classList.add('active')">Artists</a>
-        <a hx-get="/albums" hx-target="#main-content" hx-on:click="document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); this.classList.add('active')">Albums</a>
-        <a hx-get="/playlists" hx-target="#main-content" hx-on:click="document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); this.classList.add('active')">Playlists</a>
+        <a hx-get="/artists" hx-target="#picker-1" class="active" hx-on:click="document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); this.classList.add('active')">Artists</a>
+        <a hx-get="/albums" hx-target="#picker-1" hx-on:click="document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); this.classList.add('active')">Albums</a>
+        <a hx-get="/playlists" hx-target="#picker-1" hx-on:click="document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); this.classList.add('active')">Playlists</a>
     </nav>
     <div class="container">
         {% block content %}{% endblock %}

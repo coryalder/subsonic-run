@@ -1,18 +1,24 @@
-<h2>Playlists</h2>
-<ul class="grid">
-    {% for playlist in playlists %}
-        <li class="card" hx-get="/playlist/{{ playlist.id }}" hx-target="#main-content" hx-push-url="true">
-            {% if playlist.coverArt %}
-                <img src="/artwork/{{ playlist.coverArt }}" alt="{{ playlist.name }}">
+<div class="picker-widget">
+    <div class="picker-header">
+        <h2>Playlists</h2>
+    </div>
+    <div class="picker-content">
+        <ul class="picker-grid">
+            {% for playlist in playlists %}
+                <li class="card" hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    {% if playlist.coverArt %}
+                        <img src="/artwork/{{ playlist.coverArt }}" alt="{{ playlist.name }}">
+                    {% else %}
+                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                            No Image
+                        </div>
+                    {% endif %}
+                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ playlist.name }}</div>
+                    <div style="font-size: 0.8rem; color: #666;">{{ playlist.songCount }} songs</div>
+                </li>
             {% else %}
-                <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                    No Image
-                </div>
-            {% endif %}
-            <div style="font-weight: bold;">{{ playlist.name }}</div>
-            <div style="font-size: 0.8rem; color: #666;">{{ playlist.songCount }} songs</div>
-        </li>
-    {% else %}
-        <li>No playlists found.</li>
-    {% endfor %}
-</ul>
+                <li>No playlists found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

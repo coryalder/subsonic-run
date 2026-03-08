@@ -5,8 +5,14 @@
         <p>Status: <span class="status" style="color: {{ 'green' if connected else 'red' }}">{{ status }}</span></p>
     </div>
 
-    <div id="main-content" hx-get="/artists" hx-trigger="load">
-        <p>Loading artists...</p>
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div id="picker-1" hx-get="/artists" hx-trigger="load">
+            <p>Loading first picker...</p>
+        </div>
+
+        <div id="picker-2" hx-get="/albums" hx-trigger="load">
+            <p>Loading second picker...</p>
+        </div>
     </div>
 {% endblock %}
 
