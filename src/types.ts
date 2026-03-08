@@ -1,0 +1,20 @@
+export interface Interval {
+  type: 'warmup' | 'run' | 'walk' | 'cooldown';
+  duration: number; // in seconds
+}
+
+export interface Program {
+  id: string;
+  name: string;
+  difficulty: number;
+  description: string;
+  intervals: Interval[];
+}
+
+export interface Run {
+  id?: string;
+  name: string;
+  programId: string;
+  startTime: string;
+  program?: Program;
+}

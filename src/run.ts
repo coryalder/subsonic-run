@@ -2,11 +2,12 @@ import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import { Program, Run } from './types.js';
 
-async function loadPrograms() {
+async function loadPrograms(): Promise<Program[]> {
   const filePath = path.join(process.cwd(), 'programs.yaml');
   const content = await fs.readFile(filePath, 'utf8');
-  return yaml.load(content) as any[];
+  return yaml.load(content) as Program[];
 }
 
 export default async function runRoutes(fastify: FastifyInstance) {
@@ -19,7 +20,7 @@ export default async function runRoutes(fastify: FastifyInstance) {
   // View Runs Page
   fastify.get('/runs', async (request, reply) => {
     const dataDir = path.join(process.cwd(), 'data');
-    let runs: any[] = [];
+    let runs: Run[] = [];
     
     try {
       await fs.mkdir(dataDir, { recursive: true });
@@ -28,7 +29,8 @@ export default async function runRoutes(fastify: FastifyInstance) {
       
       const runPromises = jsonFiles.map(async (file) => {
         const content = await fs.readFile(path.join(dataDir, file), 'utf-8');
-        return { ...JSON.parse(content), id: file.replace('.json', '') };
+        const data = JSON.parse(content) as Run;
+        return { ...data, id: file.replace('.json', '') };
       });
       
       runs = await Promise.all(runPromises);
@@ -49,7 +51,7 @@ export default async function runRoutes(fastify: FastifyInstance) {
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      const run = JSON.parse(content);
+      const run = JSON.parse(content) as Run;
       
       // Load program details
       const programs = await loadPrograms();
@@ -68,7 +70,7 @@ export default async function runRoutes(fastify: FastifyInstance) {
   fastify.post('/start-run', async (request, reply) => {
     const { name, programId } = request.body as { name: string, programId: string };
     
-    const runData = {
+    const runData: Run = {
       name,
       programId,
       startTime: new Date().toISOString()
