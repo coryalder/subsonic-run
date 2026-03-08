@@ -1,27 +1,28 @@
-<div class="picker-widget">
-    <div class="picker-header">
-        <h2>{% if artist %}{{ artist.name }}{% else %}{{ title | default('Albums') }}{% endif %}</h2>
-        {% if artist %}
-        <button hx-get="/artists" hx-target="closest .picker-widget" hx-swap="outerHTML" style="font-size: 0.8rem;">&larr; Back</button>
-        {% endif %}
-    </div>
-    <div class="picker-content">
-        <ul class="picker-grid">
-            {% for album in albums %}
-                <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    {% if album.coverArt %}
-                        <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}">
-                    {% else %}
-                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                            No Image
-                        </div>
-                    {% endif %}
-                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ album.title }}</div>
-                    <div style="font-size: 0.8rem; color: #666;">{{ album.year }}</div>
-                </li>
-            {% else %}
-                <li>No albums found.</li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+{% extends "picker.njk" %}
+
+{% block header %}
+    <h2>{% if artist %}{{ artist.name }}{% else %}{{ title | default('Albums') }}{% endif %}</h2>
+    {% if artist %}
+    <button hx-get="/artists" hx-target="closest .picker-widget" hx-swap="outerHTML" style="font-size: 0.8rem;">&larr; Back</button>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <ul class="picker-grid">
+        {% for album in albums %}
+            <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                {% if album.coverArt %}
+                    <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}">
+                {% else %}
+                    <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                        No Image
+                    </div>
+                {% endif %}
+                <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ album.title }}</div>
+                <div style="font-size: 0.8rem; color: #666;">{{ album.year }}</div>
+            </li>
+        {% else %}
+            <li>No albums found.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
