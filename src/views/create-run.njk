@@ -22,8 +22,9 @@
                             {% for program in programs %}
                                 <label class="program-option">
                                     <input type="radio" name="programId" value="{{ program.id }}" 
-                                           data-duration="{{ program.totalDuration }}"
-                                           onchange="window.updateTargetDuration(this.dataset.duration)"
+                                           data-slow-duration="{{ program.slowDuration }}"
+                                           data-fast-duration="{{ program.fastDuration }}"
+                                           onchange="window.updateTargetDurations(this.dataset.slowDuration, this.dataset.fastDuration)"
                                            style="display: none;" required>
                                     <div class="card" style="height: 100%; text-align: left; transition: all 0.2s; border: 2px solid #eee; padding: 1rem;">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
@@ -35,7 +36,7 @@
                                         <div style="font-size: 0.85rem; line-height: 1.3; color: #444; margin-bottom: 0.5rem;">{{ program.description }}</div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #888;">
                                             <span>{{ program.intervals | length }} intervals</span>
-                                            <span style="font-weight: bold; color: #666;">{{ program.totalDuration | formatDuration }}</span>
+                                            <span style="font-weight: bold; color: #666;">{{ (program.slowDuration + program.fastDuration) | formatDuration }}</span>
                                         </div>
                                     </div>
                                 </label>
@@ -67,11 +68,19 @@
             <div class="picker-content" style="padding: 1rem;">
                 <div style="margin-bottom: 1.5rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold;">
-                        <span>Progress</span>
-                        <span id="duration-text">0:00 / 0:00</span>
+                        <span>Slow Songs</span>
+                        <span id="slow-duration-text">0:00 / 0:00</span>
+                    </div>
+                    <div style="height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="slow-duration-progress" style="height: 100%; width: 0%; background: #1565c0; transition: width 0.3s;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold;">
+                        <span>Fast Songs</span>
+                        <span id="fast-duration-text">0:00 / 0:00</span>
                     </div>
                     <div style="height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
-                        <div id="duration-progress" style="height: 100%; width: 0%; background: #1db954; transition: width 0.3s;"></div>
+                        <div id="fast-duration-progress" style="height: 100%; width: 0%; background: #c62828; transition: width 0.3s;"></div>
                     </div>
                 </div>
 
@@ -122,10 +131,12 @@
 <script>
     (function() {
         let selectedSongs = [];
-        let targetDuration = 0;
+        let targetSlowDuration = 0;
+        let targetFastDuration = 0;
 
-        window.updateTargetDuration = function(duration) {
-            targetDuration = parseInt(duration);
+        window.updateTargetDurations = function(slow, fast) {
+            targetSlowDuration = parseInt(slow);
+            targetFastDuration = parseInt(fast);
             updateUI();
         };
 
@@ -154,13 +165,18 @@
         function updateUI() {
             const playlistContainer = document.getElementById('playlist-items');
             const inputsContainer = document.getElementById('selected-songs-inputs');
-            const durationText = document.getElementById('duration-text');
-            const progressBar = document.getElementById('duration-progress');
+            
+            const slowDurationText = document.getElementById('slow-duration-text');
+            const fastDurationText = document.getElementById('fast-duration-text');
+            const slowProgressBar = document.getElementById('slow-duration-progress');
+            const fastProgressBar = document.getElementById('fast-duration-progress');
+
             const submitBtn = document.getElementById('submit-btn');
             const warning = document.getElementById('duration-warning');
 
-            const totalDuration = selectedSongs.reduce((sum, s) => sum + s.duration, 0);
-
+            const totalSlowDuration = selectedSongs.filter(s => s.status === 'slow').reduce((sum, s) => sum + s.duration, 0);
+            const totalFastDuration = selectedSongs.filter(s => s.status === 'fast').reduce((sum, s) => sum + s.duration, 0);
+            
             // Update List
             if (selectedSongs.length === 0) {
                 playlistContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 1rem;">No songs selected.</p>';
@@ -189,29 +205,34 @@
             `).join('');
 
             // Update Duration Info
-            durationText.innerText = `${formatDuration(totalDuration)} / ${formatDuration(targetDuration)}`;
+            slowDurationText.innerText = `${formatDuration(totalSlowDuration)} / ${formatDuration(targetSlowDuration)}`;
+            fastDurationText.innerText = `${formatDuration(totalFastDuration)} / ${formatDuration(targetFastDuration)}`;
             
-            const percentage = targetDuration > 0 ? Math.min(100, (totalDuration / targetDuration) * 100) : 0;
-            progressBar.style.width = `${percentage}%`;
+            const slowPercentage = targetSlowDuration > 0 ? Math.min(100, (totalSlowDuration / targetSlowDuration) * 100) : 0;
+            const fastPercentage = targetFastDuration > 0 ? Math.min(100, (totalFastDuration / targetFastDuration) * 100) : 0;
+            slowProgressBar.style.width = `${slowPercentage}%`;
+            fastProgressBar.style.width = `${fastPercentage}%`;
 
             // Validation
-            const isValid = targetDuration > 0 && 
-                          totalDuration >= (targetDuration - 15) && 
-                          totalDuration <= (targetDuration + 600);
+            const hasProgram = targetSlowDuration > 0 || targetFastDuration > 0;
+            const slowIsValid = totalSlowDuration >= (targetSlowDuration - 15) && totalSlowDuration <= (targetSlowDuration + 600);
+            const fastIsValid = totalFastDuration >= (targetFastDuration - 15) && totalFastDuration <= (targetFastDuration + 600);
+            const isValid = hasProgram && slowIsValid && fastIsValid;
 
             if (isValid) {
                 submitBtn.disabled = false;
                 submitBtn.style.background = '#1db954';
                 submitBtn.style.cursor = 'pointer';
                 warning.style.display = 'none';
-                progressBar.style.background = '#1db954';
             } else {
                 submitBtn.disabled = true;
                 submitBtn.style.background = '#ccc';
                 submitBtn.style.cursor = 'not-allowed';
                 warning.style.display = 'block';
-                progressBar.style.background = totalDuration > targetDuration + 600 ? '#e74c3c' : '#1db954';
             }
+
+            slowProgressBar.style.background = totalSlowDuration > targetSlowDuration + 600 ? '#e74c3c' : '#1565c0';
+            fastProgressBar.style.background = totalFastDuration > targetFastDuration + 600 ? '#e74c3c' : '#c62828';
         }
     })();
 </script>

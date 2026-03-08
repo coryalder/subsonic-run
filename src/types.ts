@@ -9,7 +9,8 @@ export interface Program {
   difficulty: number;
   description: string;
   intervals: Interval[];
-  totalDuration?: number; // Total seconds
+  slowDuration: number;
+  fastDuration: number;
 }
 
 export interface Run {

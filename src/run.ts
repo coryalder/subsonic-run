@@ -13,7 +13,12 @@ async function loadPrograms(): Promise<Program[]> {
   
   return programs.map(p => ({
     ...p,
-    totalDuration: p.intervals.reduce((sum, int) => sum + int.duration, 0)
+    slowDuration: p.intervals
+        .filter(i => ['walk', 'warmup', 'cooldown'].includes(i.type))
+        .reduce((sum, i) => sum + i.duration, 0),
+    fastDuration: p.intervals
+        .filter(i => i.type === 'run')
+        .reduce((sum, i) => sum + i.duration, 0)
   }));
 }
 
