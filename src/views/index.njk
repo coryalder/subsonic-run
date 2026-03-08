@@ -23,9 +23,18 @@
         </div>
 
         <h2>Artists</h2>
-        <ul id="artist-list">
+        <ul id="artist-list" style="list-style: none; display: flex; flex-wrap: wrap; gap: 1rem; padding: 0;">
             {% for artist in artists %}
-                <li>{{ artist.name }}</li>
+                <li style="width: 150px; text-align: center;">
+                    {% if artist.coverArt %}
+                        <img src="/artwork/{{ artist.coverArt }}" alt="{{ artist.name }}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">
+                    {% else %}
+                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 8px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                            No Image
+                        </div>
+                    {% endif %}
+                    <div>{{ artist.name }}</div>
+                </li>
             {% else %}
                 <li>No artists found.</li>
             {% endfor %}

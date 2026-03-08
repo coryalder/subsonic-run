@@ -67,6 +67,26 @@ fastify.get('/clicked', async (request, reply) => {
   return '<p>HTMX content loaded successfully!</p>';
 });
 
+// Artwork proxy route
+fastify.get('/artwork/:id', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  try {
+    const response = await subsonic.getCoverArt({ id });
+    
+    if (!response.ok) {
+      return reply.status(response.status).send('Failed to fetch artwork');
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const buffer = await response.arrayBuffer();
+    
+    return reply.type(contentType).send(Buffer.from(buffer));
+  } catch (err) {
+    fastify.log.error(err);
+    return reply.status(500).send('Internal Server Error');
+  }
+});
+
 const start = async () => {
   try {
     await fastify.listen({ port: 3000, host: '0.0.0.0' });
