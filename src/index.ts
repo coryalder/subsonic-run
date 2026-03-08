@@ -93,6 +93,16 @@ fastify.get('/artist/:id', async (request, reply) => {
   return reply.view('albums.njk', { artist, albums });
 });
 
+// Albums list (general)
+fastify.get('/albums', async (request, reply) => {
+  const response = await subsonic.getAlbumList({ type: 'newest', size: 50 });
+  let albums: any[] = [];
+  if (response.status === 'ok' && response.albumList?.album) {
+    albums = response.albumList.album;
+  }
+  return reply.view('albums.njk', { albums, title: 'Newest Albums' });
+});
+
 // Album detail (songs)
 fastify.get('/album/:id', async (request, reply) => {
   const { id } = request.params as { id: string };

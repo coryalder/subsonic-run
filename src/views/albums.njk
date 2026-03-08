@@ -1,5 +1,7 @@
-<h2>{{ artist.name }} - Albums</h2>
+<h2>{% if artist %}{{ artist.name }} - Albums{% else %}{{ title | default('Albums') }}{% endif %}</h2>
+{% if artist %}
 <button hx-get="/artists" hx-target="#main-content" style="margin-bottom: 1rem;">&larr; Back to Artists</button>
+{% endif %}
 
 <ul class="grid">
     {% for album in albums %}
