@@ -39,6 +39,22 @@ export default async function runRoutes(fastify: FastifyInstance) {
     return reply.view('runs.njk', { runs });
   });
 
+  // Run Details Page
+  fastify.get('/run/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = { ...JSON.parse(content), id };
+      return reply.view('run-detail.njk', { run });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(404).send('Run not found');
+    }
+  });
+
   // Start Run Handler
   fastify.post('/start-run', async (request, reply) => {
     const { name, programId } = request.body as { name: string, programId: string };

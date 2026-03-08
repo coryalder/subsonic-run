@@ -1,0 +1,37 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<div class="picker-widget" style="max-width: 800px; margin: 0 auto;">
+    <div class="picker-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/runs" style="text-decoration: none; color: #666; font-size: 1.2rem;">&larr;</a>
+            <h2>Run Details</h2>
+        </div>
+        <div style="font-size: 0.9rem; color: #666;">ID: {{ run.id }}</div>
+    </div>
+    <div class="picker-content">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="margin: 0; color: #333;">{{ run.name }}</h1>
+            <p style="color: #666; font-size: 1.1rem; margin-top: 0.5rem;">
+                Started on {{ run.startTime | date }}
+            </p>
+        </div>
+
+        <div style="background: #f9f9f9; border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="background: #1db954; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">
+                    Program: {{ run.programId }}
+                </div>
+            </div>
+            <p style="margin: 0; line-height: 1.5; color: #444;">
+                This run was started using the <strong>{{ run.programId }}</strong> interval training program.
+            </p>
+        </div>
+
+        <div style="border-top: 1px solid #eee; padding-top: 1.5rem;">
+            <h3>Raw Run Data</h3>
+            <pre style="background: #222; color: #eee; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem;">{{ run | dump(2) }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
