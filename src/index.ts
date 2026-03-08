@@ -139,6 +139,28 @@ fastify.get('/playlist/:id', async (request, reply) => {
   return reply.view('songs.njk', { playlist, songs, currentView: 'playlists' });
 });
 
+// Search functionality
+fastify.get('/search', async (request, reply) => {
+  const { query } = request.query as { query: string };
+  if (!query) {
+    // If query is empty, return to artists or just show empty result
+    return reply.view('artists.njk', { artists: [], currentView: 'artists' });
+  }
+
+  const response = await subsonic.search3({ query });
+  let artists: any[] = [];
+  let albums: any[] = [];
+  let songs: any[] = [];
+
+  if (response.status === 'ok' && response.searchResult3) {
+    artists = response.searchResult3.artist || [];
+    albums = response.searchResult3.album || [];
+    songs = response.searchResult3.song || [];
+  }
+
+  return reply.view('search.njk', { artists, albums, songs, query });
+});
+
 // HTMX route
 fastify.get('/clicked', async (request, reply) => {
   return '<p>HTMX content loaded successfully!</p>';

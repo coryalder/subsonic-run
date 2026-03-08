@@ -1,7 +1,18 @@
 <div class="picker-widget">
     <div class="picker-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; flex-grow: 1;">
             {% block header %}{% endblock %}
+            
+            <!-- Search Bar -->
+            <div style="position: relative; flex-grow: 1; max-width: 300px;">
+                <input type="text" name="query" placeholder="Search..." 
+                       value="{{ query }}"
+                       hx-get="/search" 
+                       hx-trigger="keyup changed delay:500ms, search" 
+                       hx-target="closest .picker-widget" 
+                       hx-swap="outerHTML"
+                       style="width: 100%; padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid #ddd; font-size: 0.9rem; outline: none;">
+            </div>
         </div>
         <div class="picker-tabs">
             <a hx-get="/artists" hx-target="closest .picker-widget" hx-swap="outerHTML" class="{% if currentView == 'artists' %}active{% endif %}">Artists</a>

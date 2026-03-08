@@ -1,0 +1,70 @@
+{% extends "picker.njk" %}
+
+{% block header %}
+    <h2>Search results for "{{ query }}"</h2>
+{% endblock %}
+
+{% block content_attrs %}style="max-height: 500px; overflow-y: auto;"{% endblock %}
+
+{% block content %}
+    {% if artists.length > 0 %}
+        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-bottom: 0.5rem;">Artists</h3>
+        <ul class="picker-grid" style="grid-auto-columns: 140px;">
+            {% for artist in artists %}
+                <li class="card" hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #999;">
+                        {{ artist.name[0] | upper }}
+                    </div>
+                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">{{ artist.name }}</div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if albums.length > 0 %}
+        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Albums</h3>
+        <ul class="picker-grid" style="grid-auto-columns: 140px;">
+            {% for album in albums %}
+                <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    {% if album.coverArt %}
+                        <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                    {% else %}
+                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                            No Image
+                        </div>
+                    {% endif %}
+                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">{{ album.title }}</div>
+                    <div style="font-size: 0.75rem; color: #666;">{{ album.artist }}</div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if songs.length > 0 %}
+        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Songs</h3>
+        <div style="background: white; border-radius: 8px; overflow: hidden; margin: 0 0.5rem;">
+            {% for song in songs %}
+                <div class="list-item" style="padding: 8px 10px;">
+                    <div style="width: 32px; height: 32px; background: #eee; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                        {% if song.coverArt %}
+                            <img src="/artwork/{{ song.coverArt }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <div class="song-info">
+                        <div class="song-title" style="font-size: 0.9rem;">{{ song.title }}</div>
+                        <div class="song-meta" style="font-size: 0.8rem; color: #666;">{{ song.artist }} - {{ song.album }}</div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; text-align: right;">
+                        {{ song.duration | formatDuration }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if artists.length == 0 and albums.length == 0 and songs.length == 0 %}
+        <div style="padding: 2rem; text-align: center; color: #666;">
+            No results found for "{{ query }}"
+        </div>
+    {% endif %}
+{% endblock %}
