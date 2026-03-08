@@ -77,18 +77,27 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
 
   // Start Run Handler
   fastify.post('/start-run', async (request, reply) => {
-    const { name, programId, songIds } = request.body as { name: string, programId: string, songIds?: string | string[] };
+    const { name, programId, songIds, songStatuses } = request.body as { 
+      name: string, 
+      programId: string, 
+      songIds?: string | string[],
+      songStatuses?: string | string[]
+    };
     
-    // Ensure songIds is always an array
-    const normalizedSongIds = Array.isArray(songIds) 
-      ? songIds 
-      : (songIds ? [songIds] : []);
+    // Ensure both are arrays
+    const ids = Array.isArray(songIds) ? songIds : (songIds ? [songIds] : []);
+    const statuses = Array.isArray(songStatuses) ? songStatuses : (songStatuses ? [songStatuses] : []);
+
+    const songs = ids.map((id, i) => ({
+      id,
+      status: (statuses[i] || 'slow') as 'fast' | 'slow'
+    }));
 
     const runData: Run = {
       name,
       programId,
       startTime: new Date().toISOString(),
-      songIds: normalizedSongIds,
+      songs,
       status: 'pending'
     };
 

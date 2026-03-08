@@ -55,6 +55,31 @@
             {% endif %}
         </div>
 
+        {% if run.songs.length > 0 %}
+        <div style="margin-bottom: 2rem;">
+            <h3>Playlist</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                {% for song in run.songs %}
+                <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.8rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 32px; height: 32px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #888;">
+                            {{ loop.index }}
+                        </div>
+                        <div>
+                            <div style="font-weight: bold;">{{ song.id }}</div>
+                            <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;
+                                {% if song.status == 'fast' %}background: #ffebee; color: #c62828;
+                                {% else %}background: #e3f2fd; color: #1565c0;{% endif %}">
+                                {{ song.status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div style="border-top: 1px solid #eee; padding-top: 1.5rem;">
             <h3>Raw Run Data</h3>
             <pre style="background: #222; color: #eee; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem;">{{ run | dump(2) }}</pre>

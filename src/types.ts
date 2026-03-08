@@ -18,7 +18,7 @@ export interface Run {
   programId: string;
   startTime: string;
   program?: Program;
-  songIds?: string[];
+  songs?: { id: string, status: 'fast' | 'slow' }[];
   status: 'pending' | 'downloading' | 'stitching' | 'completed' | 'failed';
   outputPath?: string;
 }

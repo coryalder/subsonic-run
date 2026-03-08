@@ -20,7 +20,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     const content = await fs.readFile(runFilePath, 'utf-8');
     const run = JSON.parse(content) as Run;
 
-    if (!run.songIds || run.songIds.length === 0) {
+    if (!run.songs || run.songs.length === 0) {
       await updateStatus('completed');
       return;
     }
@@ -30,17 +30,17 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     const tempDir = path.join(process.cwd(), 'temp', runId);
     await fs.mkdir(tempDir, { recursive: true });
 
-    for (const songId of run.songIds) {
-      console.log(`Scaffolding download for song: ${songId}`);
+    for (const song of run.songs) {
+      console.log(`Scaffolding download for song: ${song.id} (${song.status})`);
       // TODO: Implement actual download logic using subsonic.stream
-      // const streamResponse = await subsonic.stream({ id: songId });
+      // const streamResponse = await subsonic.stream({ id: song.id });
       // ... save to tempDir
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate work
     }
 
     // 2. Stitching phase
     await updateStatus('stitching');
-    console.log(`Scaffolding stitching for ${run.songIds.length} songs`);
+    console.log(`Scaffolding stitching for ${run.songs.length} songs`);
     // TODO: Implement stitching using node-av or ffmpeg
     const finalOutputPath = path.join(process.cwd(), 'output', `${runId}.mp3`);
     await fs.mkdir(path.dirname(finalOutputPath), { recursive: true });

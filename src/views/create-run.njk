@@ -130,7 +130,13 @@
         };
 
         window.addSongToPlaylist = function(song) {
-            selectedSongs.push(song);
+            const initialStatus = song.bpm >= 140 ? 'fast' : 'slow';
+            selectedSongs.push({ ...song, status: initialStatus });
+            updateUI();
+        };
+
+        window.toggleSongStatus = function(index) {
+            selectedSongs[index].status = selectedSongs[index].status === 'fast' ? 'slow' : 'fast';
             updateUI();
         };
 
@@ -163,8 +169,9 @@
                     <div class="playlist-item">
                         <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1; margin-right: 1rem;">
                             <strong>${s.title}</strong>
-                            <span style="font-size: 0.7rem; margin-left: 0.4rem; padding: 1px 4px; border-radius: 4px; background: ${s.bpm >= 140 ? '#ffebee' : '#e3f2fd'}">
-                                ${s.bpm >= 140 ? 'Fast' : 'Slow'}
+                            <span onclick="window.toggleSongStatus(${i})" 
+                                  style="cursor: pointer; font-size: 0.7rem; margin-left: 0.4rem; padding: 1px 4px; border-radius: 4px; user-select: none; background: ${s.status === 'fast' ? '#ffebee' : '#e3f2fd'}; color: ${s.status === 'fast' ? '#c62828' : '#1565c0'}; font-weight: bold; border: 1px solid ${s.status === 'fast' ? '#c62828' : '#1565c0'}">
+                                ${s.status.toUpperCase()}
                             </span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.8rem;">
@@ -178,6 +185,7 @@
             // Update Hidden Inputs
             inputsContainer.innerHTML = selectedSongs.map(s => `
                 <input type="hidden" name="songIds" value="${s.id}">
+                <input type="hidden" name="songStatuses" value="${s.status}">
             `).join('');
 
             // Update Duration Info
