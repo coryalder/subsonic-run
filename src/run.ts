@@ -128,4 +128,23 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     reply.header('HX-Redirect', '/runs');
     return reply.status(204).send();
   });
+
+  // Regenerate Run Handler
+  fastify.post('/run/:id/regenerate', async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    try {
+      // Trigger background processing (no await)
+      processRun(id, subsonic).catch(err => {
+        fastify.log.error(`Background processing failed for ${id}:`, err);
+      });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Failed to start regeneration');
+    }
+
+    // Set HX-Redirect header for HTMX to handle the redirect
+    reply.header('HX-Redirect', `/run/${id}`);
+    return reply.status(204).send();
+  });
 }

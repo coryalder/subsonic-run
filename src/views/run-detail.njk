@@ -25,6 +25,15 @@
             </div>
         </div>
 
+        <div style="margin-bottom: 2rem; text-align: right;">
+            <button hx-post="/run/{{ run.id }}/regenerate" 
+                    hx-target="body" 
+                    hx-swap="outerHTML"
+                    style="background: #e74c3c; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                Regenerate Run
+            </button>
+        </div>
+
         <div style="background: #f9f9f9; border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                 <div style="background: #1db954; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">

@@ -56,7 +56,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     await updateStatus('completed', finalOutputPath);
     
     // Clean up temp files
-    await fs.rm(tempDir, { recursive: true, force: true });
+    //await fs.rm(tempDir, { recursive: true, force: true });
 
   } catch (err) {
     console.error(`Error processing run ${runId}:`, err);
