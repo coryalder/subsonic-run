@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import SubsonicAPI from 'subsonic-api';
+import * as av from 'node-av';
 
 const fastify = Fastify({
   logger: true

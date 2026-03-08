@@ -15,6 +15,7 @@
   "type": "module",
   "dependencies": {
     "fastify": "^5.8.2",
+    "node-av": "^5.2.2",
     "subsonic-api": "^3.2.0"
   },
   "devDependencies": {
