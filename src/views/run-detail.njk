@@ -10,11 +10,19 @@
         <div style="font-size: 0.9rem; color: #666;">ID: {{ run.id }}</div>
     </div>
     <div class="picker-content">
-        <div style="margin-bottom: 2rem;">
-            <h1 style="margin: 0; color: #333;">{{ run.name }}</h1>
-            <p style="color: #666; font-size: 1.1rem; margin-top: 0.5rem;">
-                Started on {{ run.startTime | date }}
-            </p>
+        <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1 style="margin: 0; color: #333;">{{ run.name }}</h1>
+                <p style="color: #666; font-size: 1.1rem; margin-top: 0.5rem;">
+                    Started on {{ run.startTime | date }}
+                </p>
+            </div>
+            <div style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; text-transform: uppercase;
+                {% if run.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
+                {% elif run.status == 'failed' %}background: #ffebee; color: #c62828;
+                {% else %}background: #fff3e0; color: #ef6c00;{% endif %}">
+                Status: {{ run.status }}
+            </div>
         </div>
 
         <div style="background: #f9f9f9; border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; margin-bottom: 2rem;">

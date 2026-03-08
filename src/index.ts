@@ -65,7 +65,7 @@ fastify.register(view, {
 fastify.register(musicRoutes, { subsonic });
 
 // Register Run Routes
-fastify.register(runRoutes);
+fastify.register(runRoutes, { subsonic });
 
 // Basic route
 fastify.get('/', async (request, reply) => {

@@ -13,9 +13,15 @@
                     <div class="list-item" style="border: 1px solid #eee; border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 0.25rem;">{{ run.name }}</div>
-                            <div style="font-size: 0.9rem; color: #666;">
+                            <div style="font-size: 0.9rem; color: #666; display: flex; align-items: center; gap: 0.5rem;">
                                 <span style="color: #1db954; font-weight: bold;">{{ run.programId }}</span> &bull; 
-                                {{ run.startTime | date }}
+                                {{ run.startTime | date }} &bull;
+                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; 
+                                    {% if run.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
+                                    {% elif run.status == 'failed' %}background: #ffebee; color: #c62828;
+                                    {% else %}background: #fff3e0; color: #ef6c00;{% endif %}">
+                                    {{ run.status }}
+                                </span>
                             </div>
                         </div>
                         <div style="text-align: right;">

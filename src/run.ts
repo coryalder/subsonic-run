@@ -2,7 +2,9 @@ import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import SubsonicAPI from 'subsonic-api';
 import { Program, Run } from './types.js';
+import { processRun } from './processor.js';
 
 async function loadPrograms(): Promise<Program[]> {
   const filePath = path.join(process.cwd(), 'programs.yaml');
@@ -15,7 +17,9 @@ async function loadPrograms(): Promise<Program[]> {
   }));
 }
 
-export default async function runRoutes(fastify: FastifyInstance) {
+export default async function runRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
+  const { subsonic } = options;
+
   // Create Run Page
   fastify.get('/create-run', async (request, reply) => {
     const programs = await loadPrograms();
@@ -84,16 +88,23 @@ export default async function runRoutes(fastify: FastifyInstance) {
       name,
       programId,
       startTime: new Date().toISOString(),
-      songIds: normalizedSongIds
+      songIds: normalizedSongIds,
+      status: 'pending'
     };
 
     const dataDir = path.join(process.cwd(), 'data');
-    const fileName = `run-${Date.now()}.json`;
+    const runId = `run-${Date.now()}`;
+    const fileName = `${runId}.json`;
     const filePath = path.join(dataDir, fileName);
 
     try {
       await fs.mkdir(dataDir, { recursive: true });
       await fs.writeFile(filePath, JSON.stringify(runData, null, 2));
+      
+      // Trigger background processing (no await)
+      processRun(runId, subsonic).catch(err => {
+        fastify.log.error(`Background processing failed for ${runId}:`, err);
+      });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send('Failed to save run data');

@@ -19,4 +19,6 @@ export interface Run {
   startTime: string;
   program?: Program;
   songIds?: string[];
+  status: 'pending' | 'downloading' | 'stitching' | 'completed' | 'failed';
+  outputPath?: string;
 }
