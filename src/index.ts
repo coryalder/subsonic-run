@@ -6,12 +6,21 @@ import { fileURLToPath } from 'url';
 import view from '@fastify/view';
 import nunjucks from 'nunjucks';
 import fastifyStatic from '@fastify/static';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const fastify = Fastify({
   logger: true
+});
+
+const subsonic = new SubsonicAPI({
+  url: process.env.SUBSONIC_URL || '',
+  auth: {
+    username: process.env.SUBSONIC_USER || '',
+    password: process.env.SUBSONIC_PASS || '',
+  }
 });
 
 // Register static files (for HTMX)
@@ -30,7 +39,20 @@ fastify.register(view, {
 
 // Basic route
 fastify.get('/', async (request, reply) => {
-  return reply.view('index.njk');
+  let status = 'Connecting...';
+  let connected = false;
+  try {
+    const response = await subsonic.ping();
+    if (response.status === 'ok') {
+      status = `Connected to Subsonic (${process.env.SUBSONIC_URL})`;
+      connected = true;
+    } else {
+      status = `Error: ${response.status}`;
+    }
+  } catch (err) {
+    status = 'Connection failed';
+  }
+  return reply.view('index.njk', { status, connected });
 });
 
 // HTMX route

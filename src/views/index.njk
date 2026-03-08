@@ -14,7 +14,7 @@
 <body>
     <div class="container">
         <h1>Subsonic Run</h1>
-        <p>Status: <span class="status">Connected</span></p>
+        <p>Status: <span class="status" style="color: {{ 'green' if connected else 'red' }}">{{ status }}</span></p>
         
         <div id="dynamic-content">
             <button hx-get="/clicked" hx-target="#dynamic-content" hx-swap="outerHTML">
