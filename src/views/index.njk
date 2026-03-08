@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsonic Run</title>
+    <script src="/static/htmx.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Subsonic Run</h1>
+        <p>Status: <span class="status">Connected</span></p>
+        
+        <div id="dynamic-content">
+            <button hx-get="/clicked" hx-target="#dynamic-content" hx-swap="outerHTML">
+                Click me for dynamic content
+            </button>
+        </div>
+    </div>
+</body>
+</html>

@@ -14,12 +14,17 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@fastify/static": "^9.0.0",
+    "@fastify/view": "^11.1.1",
     "fastify": "^5.8.2",
+    "htmx.org": "^2.0.8",
     "node-av": "^5.2.2",
+    "nunjucks": "^3.2.4",
     "subsonic-api": "^3.2.0"
   },
   "devDependencies": {
     "@types/node": "^25.3.5",
+    "@types/nunjucks": "^3.2.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
