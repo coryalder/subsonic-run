@@ -13,8 +13,11 @@
                 <div class="song-title">{{ song.title }}</div>
                 <div class="song-meta">{{ song.artist }} - {{ song.album }}</div>
             </div>
-            <div style="font-size: 0.9rem; color: #666;">
-                {{ song.duration | formatDuration }}
+            <div style="font-size: 0.9rem; color: #666; text-align: right;">
+                {% if song.bpm %}
+                    <div style="font-weight: bold; color: #1db954;">{{ song.bpm }} BPM</div>
+                {% endif %}
+                <div>{{ song.duration | formatDuration }}</div>
             </div>
         </div>
     {% else %}
