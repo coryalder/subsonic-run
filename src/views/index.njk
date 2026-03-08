@@ -21,6 +21,15 @@
                 Click me for dynamic content
             </button>
         </div>
+
+        <h2>Artists</h2>
+        <ul id="artist-list">
+            {% for artist in artists %}
+                <li>{{ artist.name }}</li>
+            {% else %}
+                <li>No artists found.</li>
+            {% endfor %}
+        </ul>
     </div>
 </body>
 </html>

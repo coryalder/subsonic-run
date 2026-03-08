@@ -41,18 +41,25 @@ fastify.register(view, {
 fastify.get('/', async (request, reply) => {
   let status = 'Connecting...';
   let connected = false;
+  let artists: any[] = [];
   try {
     const response = await subsonic.ping();
     if (response.status === 'ok') {
       status = `Connected to Subsonic (${process.env.SUBSONIC_URL})`;
       connected = true;
+      
+      const artistsResponse = await subsonic.getArtists();
+      if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
+        // Flatten the artist list from the Subsonic response structure
+        artists = artistsResponse.artists.index.flatMap(i => i.artist);
+      }
     } else {
       status = `Error: ${response.status}`;
     }
   } catch (err) {
     status = 'Connection failed';
   }
-  return reply.view('index.njk', { status, connected });
+  return reply.view('index.njk', { status, connected, artists });
 });
 
 // HTMX route
