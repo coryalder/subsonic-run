@@ -31,13 +31,21 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     await fs.mkdir(tempDir, { recursive: true });
 
     for (const song of run.songs) {
+      const songPath = path.join(tempDir, `${song.id}.mp3`);
+      try {
+        await fs.access(songPath);
+        console.log(`Song ${song.id} already exists, skipping download.`);
+        continue;
+      } catch (error) {
+        // Song doesn't exist, proceed with download
+      }
+
       console.log(`Downloading song: ${song.id} (${song.status})`);
       const response = await subsonic.download({ id: song.id });
       if (!response.ok) {
         throw new Error(`Failed to download song ${song.id}: ${response.statusText}`);
       }
       const buffer = await response.arrayBuffer();
-      const songPath = path.join(tempDir, `${song.id}.mp3`);
       await fs.writeFile(songPath, Buffer.from(buffer));
       console.log(`Song ${song.id} saved to ${songPath}`);
     }
