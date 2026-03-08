@@ -177,7 +177,7 @@
 
             // Update Hidden Inputs
             inputsContainer.innerHTML = selectedSongs.map(s => `
-                <input type="hidden" name="songIds[]" value="${s.id}">
+                <input type="hidden" name="songIds" value="${s.id}">
             `).join('');
 
             // Update Duration Info
