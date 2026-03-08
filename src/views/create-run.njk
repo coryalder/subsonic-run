@@ -27,8 +27,9 @@
                                     </div>
                                 </div>
                                 <div style="font-size: 0.85rem; line-height: 1.3; color: #444; margin-bottom: 0.5rem;">{{ program.description }}</div>
-                                <div style="font-size: 0.75rem; color: #888;">
-                                    {{ program.intervals | length }} intervals
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #888;">
+                                    <span>{{ program.intervals | length }} intervals</span>
+                                    <span style="font-weight: bold; color: #666;">{{ program.totalDuration | formatDuration }}</span>
                                 </div>
                             </div>
                         </label>

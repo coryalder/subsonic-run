@@ -7,7 +7,12 @@ import { Program, Run } from './types.js';
 async function loadPrograms(): Promise<Program[]> {
   const filePath = path.join(process.cwd(), 'programs.yaml');
   const content = await fs.readFile(filePath, 'utf8');
-  return yaml.load(content) as Program[];
+  const programs = yaml.load(content) as Program[];
+  
+  return programs.map(p => ({
+    ...p,
+    totalDuration: p.intervals.reduce((sum, int) => sum + int.duration, 0)
+  }));
 }
 
 export default async function runRoutes(fastify: FastifyInstance) {

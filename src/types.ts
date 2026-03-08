@@ -9,6 +9,7 @@ export interface Program {
   difficulty: number;
   description: string;
   intervals: Interval[];
+  totalDuration?: number; // Total seconds
 }
 
 export interface Run {
