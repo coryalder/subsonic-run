@@ -1,0 +1,51 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<div class="picker-widget" style="max-width: 800px; margin: 0 auto;">
+    <div class="picker-header">
+        <h2>Create New Run</h2>
+    </div>
+    <div class="picker-content">
+        <form hx-post="/start-run" hx-target="#main-content">
+            <div style="margin-bottom: 2rem;">
+                <label for="run-name" style="display: block; font-weight: bold; margin-bottom: 0.5rem;">Run Name</label>
+                <input type="text" id="run-name" name="name" placeholder="Morning Run..." required
+                       style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-weight: bold; margin-bottom: 1rem;">Choose a Program</label>
+                <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                    {% for program in programs %}
+                        <label class="program-option">
+                            <input type="radio" name="programId" value="{{ program.id }}" style="display: none;" required>
+                            <div class="card" style="height: 100%; text-align: left; transition: all 0.2s; border: 2px solid #eee;">
+                                <div style="font-weight: bold; font-size: 1.1rem; color: #1db954;">{{ program.title }}</div>
+                                <div style="font-size: 0.8rem; font-weight: bold; color: #666; margin-bottom: 0.5rem;">{{ program.duration }}</div>
+                                <div style="font-size: 0.85rem; line-height: 1.3;">{{ program.description }}</div>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="submit" style="background: #1db954; color: white; border: none; padding: 1rem 2.5rem; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                    Start Run &rarr;
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .program-option input:checked + .card {
+        border-color: #1db954 !important;
+        background-color: #f6fff9 !important;
+        box-shadow: 0 4px 12px rgba(29, 185, 84, 0.1) !important;
+    }
+    .program-option .card:hover {
+        border-color: #ccc;
+    }
+</style>
+{% endblock %}
