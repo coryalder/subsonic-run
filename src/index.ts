@@ -49,6 +49,10 @@ fastify.register(view, {
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
       });
+      env.addFilter('date', (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleString();
+      });
     }
   },
   root: path.join(__dirname, 'views')

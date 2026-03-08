@@ -6,7 +6,7 @@
         <h2>Create New Run</h2>
     </div>
     <div class="picker-content">
-        <form hx-post="/start-run" hx-target="#main-content">
+        <form hx-post="/start-run" hx-target="closest .picker-widget" hx-swap="outerHTML">
             <div style="margin-bottom: 2rem;">
                 <label for="run-name" style="display: block; font-weight: bold; margin-bottom: 0.5rem;">Run Name</label>
                 <input type="text" id="run-name" name="name" placeholder="Morning Run..." required
