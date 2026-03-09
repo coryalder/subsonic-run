@@ -1,26 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import yaml from 'js-yaml';
 import SubsonicAPI from 'subsonic-api';
 import { Program, Run } from './types.js';
 import { processRun } from './processor.js';
-
-async function loadPrograms(): Promise<Program[]> {
-  const filePath = path.join(process.cwd(), 'programs.yaml');
-  const content = await fs.readFile(filePath, 'utf8');
-  const programs = yaml.load(content) as Program[];
-  
-  return programs.map(p => ({
-    ...p,
-    slowDuration: p.intervals
-        .filter(i => ['walk', 'warmup', 'cooldown'].includes(i.type))
-        .reduce((sum, i) => sum + i.duration, 0),
-    fastDuration: p.intervals
-        .filter(i => i.type === 'run')
-        .reduce((sum, i) => sum + i.duration, 0)
-  }));
-}
+import { loadPrograms } from './programs.js';
 
 export default async function runRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;

@@ -1,7 +1,21 @@
+import ffmpeg from 'fluent-ffmpeg';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
 import { Run } from './types.js';
+import { loadPrograms } from './programs.js';
+
+async function getSongDuration(filePath: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(metadata.format.duration || 0);
+      }
+    });
+  });
+}
 
 export async function processRun(runId: string, subsonic: SubsonicAPI) {
   const dataDir = path.join(process.cwd(), 'data');
@@ -20,6 +34,9 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     const content = await fs.readFile(runFilePath, 'utf-8');
     const run = JSON.parse(content) as Run;
 
+    const programs = await loadPrograms();
+    run.program = programs.find(p => p.id === run.programId);
+
     if (!run.songs || run.songs.length === 0) {
       await updateStatus('completed');
       return;
@@ -29,6 +46,9 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     await updateStatus('downloading');
     const tempDir = path.join(process.cwd(), 'temp', runId);
     await fs.mkdir(tempDir, { recursive: true });
+
+    const slowSongs = run.songs.filter(s => s.status === 'slow');
+    const fastSongs = run.songs.filter(s => s.status === 'fast');
 
     for (const song of run.songs) {
       const songPath = path.join(tempDir, `${song.id}.mp3`);
@@ -52,14 +72,108 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
 
     // 2. Stitching phase
     await updateStatus('stitching');
-    console.log(`Scaffolding stitching for ${run.songs.length} songs`);
-    // TODO: Implement stitching using node-av or ffmpeg
+    
     const finalOutputPath = path.join(process.cwd(), 'output', `${runId}.mp3`);
     await fs.mkdir(path.dirname(finalOutputPath), { recursive: true });
-    
-    // Simulate stitching
-    await new Promise(resolve => setTimeout(resolve, 2000)); 
 
+    if (!run.program || !run.songs || run.songs.length === 0) {
+        console.log('No program or songs to stitch. ' + JSON.stringify(run, null, 2));
+        await updateStatus('completed');
+        return;
+    }
+
+    let slowSongIndex = 0;
+    let fastSongIndex = 0;
+    let slowSongPosition = 0;
+    let fastSongPosition = 0;
+    const clips: string[] = [];
+    let clipIndex = 0;
+
+    for (const interval of run.program.intervals) {
+        const isSlow = interval.type === 'warmup' || interval.type === 'walk' || interval.type === 'cooldown';
+        let remainingIntervalDuration = interval.duration;
+        
+        while (remainingIntervalDuration > 0) {
+            let currentSong;
+            let currentSongPosition;
+            let songIndex;
+            let songs;
+
+            if (isSlow) {
+                currentSong = slowSongs[slowSongIndex];
+                currentSongPosition = slowSongPosition;
+                songIndex = slowSongIndex;
+                songs = slowSongs;
+            } else {
+                currentSong = fastSongs[fastSongIndex];
+                currentSongPosition = fastSongPosition;
+                songIndex = fastSongIndex;
+                songs = fastSongs;
+            }
+
+            if (!currentSong) {
+                console.log(`No ${isSlow ? 'slow' : 'fast'} songs available.`);
+                break;
+            }
+            
+            const songPath = path.join(tempDir, `${currentSong.id}.mp3`);
+            const songDuration = await getSongDuration(songPath);
+            const remainingSongDuration = songDuration - currentSongPosition;
+            
+            const clipDuration = Math.min(remainingIntervalDuration, remainingSongDuration);
+            const clipPath = path.join(tempDir, `clip-${clipIndex++}.ts`);
+
+            await new Promise<void>((resolve, reject) => {
+                ffmpeg(songPath)
+                    .setStartTime(currentSongPosition)
+                    .setDuration(clipDuration)
+                    .outputOptions('-c copy')
+                    .output(clipPath)
+                    .on('end', () => resolve())
+                    .on('error', (err) => reject(err))
+                    .run();
+            });
+            clips.push(clipPath);
+
+            remainingIntervalDuration -= clipDuration;
+
+            if (isSlow) {
+                slowSongPosition += clipDuration;
+                if (slowSongPosition >= songDuration) {
+                    slowSongIndex = (slowSongIndex + 1) % slowSongs.length;
+                    slowSongPosition = 0;
+                }
+            } else {
+                fastSongPosition += clipDuration;
+                if (fastSongPosition >= songDuration) {
+                    fastSongIndex = (fastSongIndex + 1) % fastSongs.length;
+                    fastSongPosition = 0;
+                }
+            }
+        }
+    }
+    
+    if (clips.length > 0) {
+        const fileListPath = path.join(tempDir, 'files.txt');
+        const fileListContent = clips.map(clip => `file '${clip}'`).join('\n');
+        await fs.writeFile(fileListPath, fileListContent);
+
+        await new Promise<void>((resolve, reject) => {
+            ffmpeg()
+                .input(fileListPath)
+                .inputOptions(['-f concat', '-safe 0'])
+                .outputOptions('-c copy')
+                .save(finalOutputPath)
+                .on('end', () => resolve())
+                .on('error', (err) => reject(err));
+        });
+
+        for (const clip of clips) {
+            await fs.unlink(clip);
+        }
+        await fs.unlink(fileListPath);
+    }
+    
     // 3. Completion
     await updateStatus('completed', finalOutputPath);
     
