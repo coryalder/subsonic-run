@@ -154,24 +154,35 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     }
     
     if (clips.length > 0) {
-        const fileListPath = path.join(tempDir, 'files.txt');
-        const fileListContent = clips.map(clip => `file '${clip}'`).join('\n');
-        await fs.writeFile(fileListPath, fileListContent);
+        if (clips.length === 1) {
+            await fs.rename(clips[0], finalOutputPath);
+        } else {
+            const crossfadeDuration = 2;
+            let complexFilter = '';
+            let prevOutput = '0:a';
 
-        await new Promise<void>((resolve, reject) => {
-            ffmpeg()
-                .input(fileListPath)
-                .inputOptions(['-f concat', '-safe 0'])
-                .outputOptions('-c copy')
-                .save(finalOutputPath)
-                .on('end', () => resolve())
-                .on('error', (err) => reject(err));
-        });
+            for (let i = 1; i < clips.length; i++) {
+                const currentInput = `${i}:a`;
+                const nextOutput = `a${i}`;
+                complexFilter += `[${prevOutput}][${currentInput}]acrossfade=d=${crossfadeDuration}[${nextOutput}];`;
+                prevOutput = nextOutput;
+            }
+
+            const command = ffmpeg();
+            clips.forEach(clip => command.input(clip));
+
+            await new Promise<void>((resolve, reject) => {
+                command
+                    .complexFilter(complexFilter, prevOutput)
+                    .save(finalOutputPath)
+                    .on('end', () => resolve())
+                    .on('error', (err) => reject(err));
+            });
+        }
 
         for (const clip of clips) {
             await fs.unlink(clip);
         }
-        await fs.unlink(fileListPath);
     }
     
     // 3. Completion
