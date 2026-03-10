@@ -144,6 +144,53 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     return reply.status(204).send();
   });
 
+  // Send to Subsonic (Copy to Library + Scan)
+  fastify.post('/run/:id/send-to-subsonic', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const targetDir = process.env.MUSIC_LIBRARY_PATH;
+
+    if (!targetDir) {
+      fastify.log.error('MUSIC_LIBRARY_PATH environment variable is not set');
+      return reply.status(500).send({ error: 'Server configuration error: MUSIC_LIBRARY_PATH not set' });
+    }
+
+    const dataDir = path.join(process.cwd(), 'data');
+    const runFilePath = path.join(dataDir, `${id}.json`);
+    const sourceFilePath = path.join(process.cwd(), 'output', `${id}.mp3`);
+
+    try {
+      const content = await fs.readFile(runFilePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+
+      if (run.status !== 'completed' || !run.outputPath) {
+        return reply.status(400).send({ error: 'Run is not completed yet' });
+      }
+
+      // Ensure target directory exists
+      await fs.mkdir(targetDir, { recursive: true });
+
+      // Copy file to target directory
+      const fileName = `${run.name.replace(/[/\\?%*:|"<>]/g, '-')}_${id}.mp3`;
+      const destinationPath = path.join(targetDir, fileName);
+      
+      await fs.copyFile(sourceFilePath, destinationPath);
+      fastify.log.info(`Copied run ${id} to ${destinationPath}`);
+
+      // Trigger Subsonic Scan
+      const scanResponse = await subsonic.startScan();
+      if (scanResponse.status === 'ok') {
+        return reply.status(200).send({ success: true });
+      } else {
+        fastify.log.error({ scanResponse }, 'Subsonic scan failed');
+        return reply.status(200).send({ success: true, warning: 'File copied but scan trigger failed' });
+      }
+
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ error: 'Failed to send to music library' });
+    }
+  });
+
   // Run Status fragment (for HTMX refresh)
   fastify.get('/run/:id/status', async (request, reply) => {
     const { id } = request.params as { id: string };

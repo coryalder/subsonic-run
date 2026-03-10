@@ -28,11 +28,19 @@
                 <h3 style="margin: 0; font-size: 1.2rem;">Run Mix Ready!</h3>
                 <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.9rem;">Listen to your stitched workout mix now.</p>
             </div>
-            <button onclick="window.playPreview('{{ run.id }}', '{{ run.name | escape }}', 'Workout Mix', true)" 
-                    style="background: white; color: #1db954; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
-                    {% if not run.outputPath %}disabled style="background: #ccc; cursor: not-allowed;"{% endif %}>
-                Listen to Mix
-            </button>
+            <div style="display: flex; gap: 1rem;">
+                <button hx-post="/run/{{ run.id }}/send-to-subsonic" 
+                        hx-swap="none"
+                        style="background: #ffffff33; color: white; border: 1px solid white; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem;"
+                        hx-on::after-request="if(event.detail.successful) alert('Sent to Music Library!'); else alert('Failed to send to library');">
+                    Send to Subsonic
+                </button>
+                <button onclick="window.playPreview('{{ run.id }}', '{{ run.name | escape }}', 'Workout Mix', true)" 
+                        style="background: white; color: #1db954; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+                        {% if not run.outputPath %}disabled style="background: #ccc; cursor: not-allowed;"{% endif %}>
+                    Listen to Mix
+                </button>
+            </div>
         </div>
         {% endif %}
 
