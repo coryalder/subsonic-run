@@ -1,17 +1,32 @@
 import { FastifyInstance } from 'fastify';
 import SubsonicAPI from 'subsonic-api';
 
+let cachedArtists: any[] | null = null;
+let lastCacheTime = 0;
+const CACHE_TTL = 1000 * 60 * 10; // 10 minutes
+
+async function getArtists(subsonic: SubsonicAPI) {
+  const now = Date.now();
+  if (cachedArtists && (now - lastCacheTime < CACHE_TTL)) {
+    return cachedArtists;
+  }
+
+  const artistsResponse = await subsonic.getArtists();
+  if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
+    cachedArtists = artistsResponse.artists.index.flatMap((i: any) => i.artist);
+    lastCacheTime = now;
+    return cachedArtists;
+  }
+  return [];
+}
+
 export default async function musicRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
 
   // Artists fragment
   fastify.get('/artists', async (request, reply) => {
     const { offset = 0, size = 15 } = request.query as { offset?: number, size?: number };
-    const artistsResponse = await subsonic.getArtists();
-    let artists: any[] = [];
-    if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
-      artists = artistsResponse.artists.index.flatMap(i => i.artist);
-    }
+    const artists = await getArtists(subsonic);
     
     const paginatedArtists = artists.slice(Number(offset), Number(offset) + Number(size));
     const nextOffset = Number(offset) + Number(size);
