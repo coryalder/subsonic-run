@@ -1,11 +1,12 @@
-import NodeCache from 'node-cache';
 // @ts-ignore
 import { createCache } from 'cache-manager';
 // @ts-ignore
 import fsStore from 'cache-manager-fs-hash';
 
-// Memory cache for metadata
-const memoryCache = new NodeCache({ stdTTL: 600 });
+// Memory cache for metadata using cache-manager's default in-memory store
+const memoryCache = createCache({
+  ttl: 600 * 1000, // 10 minutes (cache-manager uses milliseconds for default store)
+});
 
 // Disk cache for images
 let diskCache: any;
@@ -18,7 +19,6 @@ function getDiskCache() {
       maxsize: 1000 * 1000 * 1000,
     };
     
-    // In ESM, the CJS default export might be on the 'default' property
     const actualFsStore = (fsStore as any).default || fsStore;
     const store = (typeof actualFsStore.create === 'function') 
       ? actualFsStore.create(options) 
@@ -30,15 +30,13 @@ function getDiskCache() {
 }
 
 export async function getCached<T>(key: string, fetcher: () => Promise<T>, ttl?: number): Promise<T> {
-  const cached = memoryCache.get<T>(key);
-  if (cached !== undefined) {
-    return cached;
+  const cached = await memoryCache.get(key);
+  if (cached !== undefined && cached !== null) {
+    return cached as T;
   }
   const fresh = await fetcher();
-  if (ttl !== undefined) {
-    memoryCache.set(key, fresh, ttl);
-  } else {
-    memoryCache.set(key, fresh);
+  if (fresh !== null) {
+    await memoryCache.set(key, fresh, ttl);
   }
   return fresh;
 }

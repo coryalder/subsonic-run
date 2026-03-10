@@ -7,7 +7,7 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
 
   // Artists fragment
   fastify.get('/artists', async (request, reply) => {
-    const { offset = 0, size = 15 } = request.query as { offset?: number, size?: number };
+    const { offset = 0, size = 12 } = request.query as { offset?: number, size?: number };
     
     const artists = await getCached('all_artists', async () => {
       const response = await subsonic.getArtists();
@@ -48,7 +48,7 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
 
   // Albums list (general)
   fastify.get('/albums', async (request, reply) => {
-    const { offset = 0, size = 15 } = request.query as { offset?: number, size?: number };
+    const { offset = 0, size = 12 } = request.query as { offset?: number, size?: number };
     const response = await getCached(`album_list_${offset}_${size}`, () => 
       subsonic.getAlbumList({ type: 'newest', size: Number(size), offset: Number(offset) })
     );
