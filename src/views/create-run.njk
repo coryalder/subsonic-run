@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="create-run-mode" style="max-width: 1000px; margin: 0 auto;">
-    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem; align-items: start;">
-        <!-- Left: Form -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <!-- Configure Run Section -->
         <div class="picker-widget">
             <div class="picker-header">
                 <h2>1. Configure Run</h2>
@@ -60,41 +60,58 @@
             </div>
         </div>
 
-        <!-- Right: Playlist -->
+        <!-- Playlist Section -->
         <div class="picker-widget">
             <div class="picker-header">
                 <h2>2. Your Playlist</h2>
             </div>
             <div class="picker-content" style="padding: 1rem;">
-                <div style="margin-bottom: 1.5rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold;">
-                        <span>Slow Songs</span>
-                        <span id="slow-duration-text">0:00 / 0:00</span>
-                    </div>
-                    <div style="height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; margin-bottom: 1rem;">
-                        <div id="slow-duration-progress" style="height: 100%; width: 0%; background: #1565c0; transition: width 0.3s;"></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Slow Column -->
+                    <div>
+                        <div style="margin-bottom: 1.5rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold;">
+                                <span>Slow Songs</span>
+                                <span id="slow-duration-text">0:00 / 0:00</span>
+                            </div>
+                            <div style="height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
+                                <div id="slow-duration-progress" style="height: 100%; width: 0%; background: #1565c0; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                        <div id="playlist-items-slow" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto;">
+                            <p style="color: #888; text-align: center; padding: 1rem;">No slow songs.</p>
+                        </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold;">
-                        <span>Fast Songs</span>
-                        <span id="fast-duration-text">0:00 / 0:00</span>
+                    <!-- Fast Column -->
+                    <div>
+                        <div style="margin-bottom: 1.5rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold;">
+                                <span>Fast Songs</span>
+                                <span id="fast-duration-text">0:00 / 0:00</span>
+                            </div>
+                            <div style="height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
+                                <div id="fast-duration-progress" style="height: 100%; width: 0%; background: #c62828; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                        <div id="playlist-items-fast" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto;">
+                            <p style="color: #888; text-align: center; padding: 1rem;">No fast songs.</p>
+                        </div>
                     </div>
-                    <div style="height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
-                        <div id="fast-duration-progress" style="height: 100%; width: 0%; background: #c62828; transition: width 0.3s;"></div>
-                    </div>
-                </div>
-
-                <div id="playlist-items" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto;">
-                    <p style="color: #888; text-align: center; padding: 1rem;">No songs selected.</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Bottom: Music Picker -->
-    <div style="margin-top: 2rem;">
-        <div id="music-picker" hx-get="/artists" hx-trigger="load">
-            <p>Loading music library...</p>
+        <!-- Music Picker Section -->
+        <div class="picker-widget">
+            <div class="picker-header">
+                <h2>3. Add Music</h2>
+            </div>
+            <div class="picker-content">
+                <div id="music-picker" hx-get="/artists" hx-trigger="load">
+                    <p style="padding: 1rem;">Loading music library...</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -163,7 +180,8 @@
         }
 
         function updateUI() {
-            const playlistContainer = document.getElementById('playlist-items');
+            const slowPlaylistContainer = document.getElementById('playlist-items-slow');
+            const fastPlaylistContainer = document.getElementById('playlist-items-fast');
             const inputsContainer = document.getElementById('selected-songs-inputs');
             
             const slowDurationText = document.getElementById('slow-duration-text');
@@ -174,28 +192,45 @@
             const submitBtn = document.getElementById('submit-btn');
             const warning = document.getElementById('duration-warning');
 
-            const totalSlowDuration = selectedSongs.filter(s => s.status === 'slow').reduce((sum, s) => sum + s.duration, 0);
-            const totalFastDuration = selectedSongs.filter(s => s.status === 'fast').reduce((sum, s) => sum + s.duration, 0);
+            const slowSongs = selectedSongs.filter(s => s.status === 'slow');
+            const fastSongs = selectedSongs.filter(s => s.status === 'fast');
             
-            // Update List
-            if (selectedSongs.length === 0) {
-                playlistContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 1rem;">No songs selected.</p>';
-            } else {
-                playlistContainer.innerHTML = selectedSongs.map((s, i) => `
-                    <div class="playlist-item">
-                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1; margin-right: 1rem;">
-                            <strong>${s.title}</strong>
-                            <span onclick="window.toggleSongStatus(${i})" 
-                                  style="cursor: pointer; font-size: 0.7rem; margin-left: 0.4rem; padding: 1px 4px; border-radius: 4px; user-select: none; background: ${s.status === 'fast' ? '#ffebee' : '#e3f2fd'}; color: ${s.status === 'fast' ? '#c62828' : '#1565c0'}; font-weight: bold; border: 1px solid ${s.status === 'fast' ? '#c62828' : '#1565c0'}">
-                                ${s.status.toUpperCase()}
-                            </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.8rem;">
-                            <span>${formatDuration(s.duration)}</span>
-                            <span class="remove-song" onclick="window.removeSong(${i})">&times;</span>
-                        </div>
+            const totalSlowDuration = slowSongs.reduce((sum, s) => sum + s.duration, 0);
+            const totalFastDuration = fastSongs.reduce((sum, s) => sum + s.duration, 0);
+            
+            const renderSong = (s, globalIndex) => `
+                <div class="playlist-item">
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1; margin-right: 1rem;">
+                        <strong>${s.title}</strong>
+                        <span onclick="window.toggleSongStatus(${globalIndex})" 
+                              style="cursor: pointer; font-size: 0.7rem; margin-left: 0.4rem; padding: 1px 4px; border-radius: 4px; user-select: none; background: ${s.status === 'fast' ? '#ffebee' : '#e3f2fd'}; color: ${s.status === 'fast' ? '#c62828' : '#1565c0'}; font-weight: bold; border: 1px solid ${s.status === 'fast' ? '#c62828' : '#1565c0'}">
+                            ${s.status.toUpperCase()}
+                        </span>
                     </div>
-                `).join('');
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <span>${formatDuration(s.duration)}</span>
+                        <span class="remove-song" onclick="window.removeSong(${globalIndex})">&times;</span>
+                    </div>
+                </div>
+            `;
+
+            // Update Lists
+            if (slowSongs.length === 0) {
+                slowPlaylistContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 1rem;">No slow songs.</p>';
+            } else {
+                slowPlaylistContainer.innerHTML = selectedSongs
+                    .map((s, i) => s.status === 'slow' ? renderSong(s, i) : null)
+                    .filter(x => x !== null)
+                    .join('');
+            }
+
+            if (fastSongs.length === 0) {
+                fastPlaylistContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 1rem;">No fast songs.</p>';
+            } else {
+                fastPlaylistContainer.innerHTML = selectedSongs
+                    .map((s, i) => s.status === 'fast' ? renderSong(s, i) : null)
+                    .filter(x => x !== null)
+                    .join('');
             }
 
             // Update Hidden Inputs
