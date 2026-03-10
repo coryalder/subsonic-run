@@ -15,13 +15,18 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
     
     const paginatedArtists = artists.slice(Number(offset), Number(offset) + Number(size));
     const nextOffset = Number(offset) + Number(size);
+    const prevOffset = Math.max(0, Number(offset) - Number(size));
     const hasMore = nextOffset < artists.length;
+    const hasPrev = Number(offset) > 0;
 
-    if (request.headers['hx-request'] && offset > 0) {
-      return reply.view('artists.njk', { artists: paginatedArtists, nextOffset, hasMore, isPartial: true });
-    }
-    
-    return reply.view('artists.njk', { artists: paginatedArtists, nextOffset, hasMore, currentView: 'artists' });
+    return reply.view('artists.njk', { 
+      artists: paginatedArtists, 
+      nextOffset, 
+      prevOffset,
+      hasMore, 
+      hasPrev,
+      currentView: 'artists' 
+    });
   });
 
   // Artist detail (albums)
@@ -47,13 +52,19 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
     }
 
     const nextOffset = Number(offset) + Number(size);
+    const prevOffset = Math.max(0, Number(offset) - Number(size));
     const hasMore = albums.length === Number(size);
+    const hasPrev = Number(offset) > 0;
 
-    if (request.headers['hx-request'] && offset > 0) {
-      return reply.view('albums.njk', { albums, nextOffset, hasMore, isPartial: true });
-    }
-
-    return reply.view('albums.njk', { albums, nextOffset, hasMore, title: 'Newest Albums', currentView: 'albums' });
+    return reply.view('albums.njk', { 
+      albums, 
+      nextOffset, 
+      prevOffset,
+      hasMore, 
+      hasPrev,
+      title: 'Newest Albums', 
+      currentView: 'albums' 
+    });
   });
 
   // Album detail (songs)
