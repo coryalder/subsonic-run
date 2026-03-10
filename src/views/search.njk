@@ -9,13 +9,11 @@
 {% block content %}
     {% if artists.length > 0 %}
         <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-bottom: 1px solid #eee;">Artists</h3>
-        <ul class="picker-list">
+        <ul class="picker-grid">
             {% for artist in artists %}
-                <li hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    <div class="picker-list-info">
-                        <div class="picker-list-title">{{ artist.name }}</div>
-                    </div>
-                    <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+                <li class="card" hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <img src="/artwork/{{ artist.coverArt }}" alt="{{ artist.name }}" loading="lazy">
+                    <div class="card-title">{{ artist.name }}</div>
                 </li>
             {% endfor %}
         </ul>
@@ -23,14 +21,12 @@
 
     {% if albums.length > 0 %}
         <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">Albums</h3>
-        <ul class="picker-list">
+        <ul class="picker-grid">
             {% for album in albums %}
-                <li hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    <div class="picker-list-info">
-                        <div class="picker-list-title">{{ album.title }}</div>
-                        <div class="picker-list-subtitle">{{ album.artist }}</div>
-                    </div>
-                    <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+                <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}" loading="lazy">
+                    <div class="card-title">{{ album.title }}</div>
+                    <div class="card-subtitle">{{ album.artist }}</div>
                 </li>
             {% endfor %}
         </ul>
@@ -38,14 +34,12 @@
 
     {% if playlists.length > 0 %}
         <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">Playlists</h3>
-        <ul class="picker-list">
+        <ul class="picker-grid">
             {% for playlist in playlists %}
-                <li hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    <div class="picker-list-info">
-                        <div class="picker-list-title">{{ playlist.name }}</div>
-                        <div class="picker-list-subtitle">{{ playlist.songCount }} songs</div>
-                    </div>
-                    <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+                <li class="card" hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <img src="/artwork/{{ playlist.coverArt }}" alt="{{ playlist.name }}" loading="lazy">
+                    <div class="card-title">{{ playlist.name }}</div>
+                    <div class="card-subtitle">{{ playlist.songCount }} songs</div>
                 </li>
             {% endfor %}
         </ul>

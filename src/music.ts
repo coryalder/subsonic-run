@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import SubsonicAPI from 'subsonic-api';
-import { getCached } from './cache.js';
+import { getCached, getCachedDisk } from './cache.js';
 
 export default async function musicRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
@@ -145,20 +145,29 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
   // Artwork proxy route
   fastify.get('/artwork/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    try {
-      const response = await subsonic.getCoverArt({ id });
-      
-      if (!response.ok) {
-        return reply.status(response.status).send('Failed to fetch artwork');
-      }
+    
+    const cacheKey = `artwork_${id}`;
+    const cached = await getCachedDisk(cacheKey, async () => {
+      try {
+        const response = await subsonic.getCoverArt({ id });
+        if (!response.ok) return null;
 
-      const contentType = response.headers.get('content-type') || 'image/jpeg';
-      const buffer = await response.arrayBuffer();
-      
-      return reply.type(contentType).send(Buffer.from(buffer));
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(500).send('Internal Server Error');
+        const contentType = response.headers.get('content-type') || 'image/jpeg';
+        const buffer = await response.arrayBuffer();
+        return {
+          contentType,
+          data: Buffer.from(buffer).toString('base64')
+        };
+      } catch (err) {
+        fastify.log.error(err);
+        return null;
+      }
+    });
+
+    if (!cached) {
+      return reply.status(404).send('Artwork not found');
     }
+
+    return reply.type(cached.contentType).send(Buffer.from(cached.data, 'base64'));
   });
 }

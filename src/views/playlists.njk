@@ -5,14 +5,12 @@
 {% endblock %}
 
 {% block content %}
-    <ul class="picker-list">
+    <ul class="picker-grid">
         {% for playlist in playlists %}
-            <li hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                <div class="picker-list-info">
-                    <div class="picker-list-title">{{ playlist.name }}</div>
-                    <div class="picker-list-subtitle">{{ playlist.songCount }} songs</div>
-                </div>
-                <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+            <li class="card" hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                <img src="/artwork/{{ playlist.coverArt }}" alt="{{ playlist.name }}" loading="lazy">
+                <div class="card-title">{{ playlist.name }}</div>
+                <div class="card-subtitle">{{ playlist.songCount }} songs</div>
             </li>
         {% else %}
             <li style="padding: 1rem; color: #666;">No playlists found.</li>

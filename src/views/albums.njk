@@ -8,14 +8,12 @@
 {% endblock %}
 
 {% block content %}
-    <ul class="picker-list">
+    <ul class="picker-grid">
         {% for album in albums %}
-            <li hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                <div class="picker-list-info">
-                    <div class="picker-list-title">{{ album.title }}</div>
-                    <div class="picker-list-subtitle">{{ album.year }}</div>
-                </div>
-                <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+            <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}" loading="lazy">
+                <div class="card-title">{{ album.title }}</div>
+                <div class="card-subtitle">{{ album.year }}</div>
             </li>
         {% else %}
             <li style="padding: 1rem; color: #666;">No albums found.</li>

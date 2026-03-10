@@ -62,20 +62,49 @@
         }
         .picker-grid {
             display: grid;
-            grid-template-rows: repeat(2, auto);
-            grid-auto-flow: column;
-            grid-auto-columns: 160px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 1.5rem;
-            overflow-x: auto;
-            padding: 0.5rem 0 1rem 0;
+            padding: 1.5rem;
             list-style: none;
-            scrollbar-width: thin;
+            margin: 0;
         }
-        .picker-grid::-webkit-scrollbar { height: 6px; }
-        .picker-grid::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-
-        .card { width: 100%; text-align: center; background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card { 
+            text-align: center; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: 1px solid #eee; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card img { 
+            width: 100%; 
+            aspect-ratio: 1; 
+            object-fit: cover; 
+            border-radius: 4px; 
+            background: #eee;
+        }
+        .card-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 0.2rem;
+        }
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .picker-list {
             list-style: none;
             padding: 0;
@@ -90,20 +119,10 @@
             gap: 1rem;
             transition: background 0.2s;
         }
-        .picker-list li:hover {
-            background: #f9f9f9;
-        }
-        .picker-list-info {
-            flex-grow: 1;
-        }
-        .picker-list-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-        .picker-list-subtitle {
-            font-size: 0.8rem;
-            color: #666;
-        }
+        .picker-list li:hover { background: #f9f9f9; }
+        .picker-list-info { flex-grow: 1; }
+        .picker-list-title { font-weight: bold; font-size: 0.95rem; }
+        .picker-list-subtitle { font-size: 0.8rem; color: #666; }
         .list-item { padding: 10px; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 1rem; background: white; }
         .list-item:hover { background: #f0f0f0; cursor: pointer; }
         .song-info { flex-grow: 1; }

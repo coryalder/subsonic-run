@@ -5,13 +5,11 @@
 {% endblock %}
 
 {% block content %}
-    <ul class="picker-list">
+    <ul class="picker-grid">
         {% for artist in artists %}
-            <li hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                <div class="picker-list-info">
-                    <div class="picker-list-title">{{ artist.name }}</div>
-                </div>
-                <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+            <li class="card" hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                <img src="/artwork/{{ artist.coverArt }}" alt="{{ artist.name }}" loading="lazy">
+                <div class="card-title">{{ artist.name }}</div>
             </li>
         {% else %}
             <li style="padding: 1rem; color: #666;">No artists found.</li>
