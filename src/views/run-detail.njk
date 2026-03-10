@@ -67,31 +67,58 @@
         {% if run.songs.length > 0 %}
         <div style="margin-bottom: 2rem;">
             <h3>Playlist</h3>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                {% for song in run.songs %}
-                <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.8rem 1rem; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 32px; height: 32px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #888;">
-                            {{ loop.index }}
-                        </div>
-                        <div>
-                            <div style="font-weight: bold;">{{ song.title | default(song.id) }}</div>
-                            <div style="font-size: 0.8rem; color: #666;">{{ song.artist }}</div>
-                            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.3rem;">
-                                <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;
-                                    {% if song.status == 'fast' %}background: #ffebee; color: #c62828;
-                                    {% else %}background: #e3f2fd; color: #1565c0;{% endif %}">
-                                    {{ song.status }}
-                                </span>
-                                {% if song.bpm %}
-                                <span style="font-size: 0.75rem; color: #1db954; font-weight: bold;">{{ song.bpm }} BPM</span>
-                                {% endif %}
-                                <span style="font-size: 0.75rem; color: #888;">{{ song.duration | formatDuration }}</span>
-                            </div>
-                        </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <!-- Slow Songs Column -->
+                <div>
+                    <h4 style="color: #1565c0; border-bottom: 2px solid #e3f2fd; padding-bottom: 0.5rem; margin-bottom: 1rem;">Slow Songs</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% set slowCount = 0 %}
+                        {% for song in run.songs %}
+                            {% if song.status == 'slow' %}
+                                {% set slowCount = slowCount + 1 %}
+                                <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;">
+                                    <div style="font-weight: bold; font-size: 0.9rem;">{{ song.title | default(song.id) }}</div>
+                                    <div style="font-size: 0.75rem; color: #666;">{{ song.artist }}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
+                                        <span style="font-size: 0.7rem; color: #888;">{{ song.duration | formatDuration }}</span>
+                                        {% if song.bpm %}
+                                        <span style="font-size: 0.7rem; color: #1565c0; font-weight: bold;">{{ song.bpm }} BPM</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        {% if slowCount == 0 %}
+                            <p style="color: #888; font-size: 0.9rem; text-align: center;">No slow songs.</p>
+                        {% endif %}
                     </div>
                 </div>
-                {% endfor %}
+
+                <!-- Fast Songs Column -->
+                <div>
+                    <h4 style="color: #c62828; border-bottom: 2px solid #ffebee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Fast Songs</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% set fastCount = 0 %}
+                        {% for song in run.songs %}
+                            {% if song.status == 'fast' %}
+                                {% set fastCount = fastCount + 1 %}
+                                <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;">
+                                    <div style="font-weight: bold; font-size: 0.9rem;">{{ song.title | default(song.id) }}</div>
+                                    <div style="font-size: 0.75rem; color: #666;">{{ song.artist }}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
+                                        <span style="font-size: 0.7rem; color: #888;">{{ song.duration | formatDuration }}</span>
+                                        {% if song.bpm %}
+                                        <span style="font-size: 0.7rem; color: #c62828; font-weight: bold;">{{ song.bpm }} BPM</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        {% if fastCount == 0 %}
+                            <p style="color: #888; font-size: 0.9rem; text-align: center;">No fast songs.</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
         {% endif %}
