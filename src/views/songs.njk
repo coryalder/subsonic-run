@@ -31,7 +31,7 @@
                 <button type="button" 
                         class="add-song-btn"
                         style="background: #1db954; color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: none;"
-                        onclick="window.addSongToPlaylist({id: '{{ song.id }}', title: '{{ song.title }}', duration: {{ song.duration }}, bpm: {{ song.bpm | default(0) }}})">
+                        onclick="window.addSongToPlaylist({id: '{{ song.id }}', title: '{{ song.title }}', artist: '{{ song.artist }}', duration: {{ song.duration }}, bpm: {{ song.bpm | default(0) }}})">
                     +
                 </button>
             </div>

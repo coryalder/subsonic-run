@@ -159,7 +159,11 @@
 
         window.addSongToPlaylist = function(song) {
             const initialStatus = song.bpm >= 140 ? 'fast' : 'slow';
-            selectedSongs.push({ ...song, status: initialStatus });
+            selectedSongs.push({ 
+                ...song, 
+                status: initialStatus,
+                artist: song.artist || 'Unknown'
+            });
             updateUI();
         };
 
@@ -237,6 +241,10 @@
             inputsContainer.innerHTML = selectedSongs.map(s => `
                 <input type="hidden" name="songIds" value="${s.id}">
                 <input type="hidden" name="songStatuses" value="${s.status}">
+                <input type="hidden" name="songTitles" value="${s.title}">
+                <input type="hidden" name="songArtists" value="${s.artist}">
+                <input type="hidden" name="songDurations" value="${s.duration}">
+                <input type="hidden" name="songBpms" value="${s.bpm}">
             `).join('');
 
             // Update Duration Info

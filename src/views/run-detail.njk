@@ -75,12 +75,19 @@
                             {{ loop.index }}
                         </div>
                         <div>
-                            <div style="font-weight: bold;">{{ song.id }}</div>
-                            <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;
-                                {% if song.status == 'fast' %}background: #ffebee; color: #c62828;
-                                {% else %}background: #e3f2fd; color: #1565c0;{% endif %}">
-                                {{ song.status }}
-                            </span>
+                            <div style="font-weight: bold;">{{ song.title | default(song.id) }}</div>
+                            <div style="font-size: 0.8rem; color: #666;">{{ song.artist }}</div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.3rem;">
+                                <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase;
+                                    {% if song.status == 'fast' %}background: #ffebee; color: #c62828;
+                                    {% else %}background: #e3f2fd; color: #1565c0;{% endif %}">
+                                    {{ song.status }}
+                                </span>
+                                {% if song.bpm %}
+                                <span style="font-size: 0.75rem; color: #1db954; font-weight: bold;">{{ song.bpm }} BPM</span>
+                                {% endif %}
+                                <span style="font-size: 0.75rem; color: #888;">{{ song.duration | formatDuration }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

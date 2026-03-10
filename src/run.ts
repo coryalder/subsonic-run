@@ -66,20 +66,32 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
 
   // Start Run Handler
   fastify.post('/start-run', async (request, reply) => {
-    const { name, programId, songIds, songStatuses } = request.body as { 
+    const { name, programId, songIds, songStatuses, songTitles, songArtists, songDurations, songBpms } = request.body as { 
       name: string, 
       programId: string, 
       songIds?: string | string[],
-      songStatuses?: string | string[]
+      songStatuses?: string | string[],
+      songTitles?: string | string[],
+      songArtists?: string | string[],
+      songDurations?: string | string[],
+      songBpms?: string | string[]
     };
     
-    // Ensure both are arrays
+    // Ensure all are arrays
     const ids = Array.isArray(songIds) ? songIds : (songIds ? [songIds] : []);
     const statuses = Array.isArray(songStatuses) ? songStatuses : (songStatuses ? [songStatuses] : []);
+    const titles = Array.isArray(songTitles) ? songTitles : (songTitles ? [songTitles] : []);
+    const artists = Array.isArray(songArtists) ? songArtists : (songArtists ? [songArtists] : []);
+    const durations = Array.isArray(songDurations) ? songDurations : (songDurations ? [songDurations] : []);
+    const bpms = Array.isArray(songBpms) ? songBpms : (songBpms ? [songBpms] : []);
 
     const songs = ids.map((id, i) => ({
       id,
-      status: (statuses[i] || 'slow') as 'fast' | 'slow'
+      status: (statuses[i] || 'slow') as 'fast' | 'slow',
+      title: titles[i],
+      artist: artists[i],
+      duration: parseInt(durations[i] as string) || 0,
+      bpm: parseInt(bpms[i] as string) || 0
     }));
 
     const runData: Run = {
