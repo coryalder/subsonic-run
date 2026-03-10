@@ -17,18 +17,8 @@
                     Started on {{ run.startTime | date }}
                 </p>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; text-transform: uppercase;
-                {% if run.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
-                {% elif run.status == 'failed' %}background: #ffebee; color: #c62828;
-                {% else %}background: #fff3e0; color: #ef6c00;{% endif %}">
-                Status: {{ run.status }}
-                <button hx-post="/run/{{ run.id }}/regenerate" 
-                        hx-target="body" 
-                        hx-swap="outerHTML"
-                        title="Regenerate Run"
-                        style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1em; padding: 0; margin-left: 0.5rem;">
-                    &#x21BB; <!-- Unicode Reload Icon -->
-                </button>
+            <div id="run-status-badge-container">
+                {% include '_run-status.njk' %}
             </div>
         </div>
 

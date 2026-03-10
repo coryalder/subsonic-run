@@ -143,4 +143,21 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     reply.header('HX-Redirect', `/run/${id}`);
     return reply.status(204).send();
   });
+
+  // Run Status fragment (for HTMX refresh)
+  fastify.get('/run/:id/status', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      return reply.view('_run-status.njk', { run: { ...run, id } });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Error fetching status');
+    }
+  });
+
 }
