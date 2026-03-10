@@ -77,8 +77,17 @@
                             {% if song.status == 'slow' %}
                                 {% set slowCount = slowCount + 1 %}
                                 <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;">
-                                    <div style="font-weight: bold; font-size: 0.9rem;">{{ song.title | default(song.id) }}</div>
-                                    <div style="font-size: 0.75rem; color: #666;">{{ song.artist }}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="flex-grow: 1; overflow: hidden;">
+                                            <div style="font-weight: bold; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title | default(song.id) }}</div>
+                                            <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</div>
+                                        </div>
+                                        <button type="button" 
+                                                style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.65rem; margin-left: 0.5rem;"
+                                                onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">
+                                            Play
+                                        </button>
+                                    </div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
                                         <span style="font-size: 0.7rem; color: #888;">{{ song.duration | formatDuration }}</span>
                                         {% if song.bpm %}
@@ -103,8 +112,17 @@
                             {% if song.status == 'fast' %}
                                 {% set fastCount = fastCount + 1 %}
                                 <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;">
-                                    <div style="font-weight: bold; font-size: 0.9rem;">{{ song.title | default(song.id) }}</div>
-                                    <div style="font-size: 0.75rem; color: #666;">{{ song.artist }}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="flex-grow: 1; overflow: hidden;">
+                                            <div style="font-weight: bold; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title | default(song.id) }}</div>
+                                            <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</div>
+                                        </div>
+                                        <button type="button" 
+                                                style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.65rem; margin-left: 0.5rem;"
+                                                onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">
+                                            Play
+                                        </button>
+                                    </div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
                                         <span style="font-size: 0.7rem; color: #888;">{{ song.duration | formatDuration }}</span>
                                         {% if song.bpm %}
