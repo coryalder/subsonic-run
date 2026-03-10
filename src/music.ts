@@ -170,4 +170,24 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
 
     return reply.type(cached.contentType).send(Buffer.from(cached.data, 'base64'));
   });
+
+  // Stream proxy route
+  fastify.get('/stream/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    try {
+      const response = await subsonic.stream({ id, format: 'mp3' });
+      
+      if (!response.ok) {
+        return reply.status(response.status).send('Failed to fetch stream');
+      }
+
+      const contentType = response.headers.get('content-type') || 'audio/mpeg';
+      const stream = response.body;
+      
+      return reply.type(contentType).send(stream);
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Internal Server Error');
+    }
+  });
 }

@@ -143,5 +143,39 @@
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+
+    <!-- Audio Player -->
+    <div id="audio-preview-player" style="position: fixed; bottom: 0; left: 0; right: 0; background: #222; color: white; padding: 1rem; display: none; z-index: 1000; border-top: 3px solid #1db954;">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 1.5rem; padding: 0 1rem;">
+            <div style="flex-grow: 1;">
+                <div id="player-song-title" style="font-weight: bold; font-size: 0.9rem;">Song Title</div>
+                <div id="player-song-artist" style="font-size: 0.8rem; color: #aaa;">Artist Name</div>
+            </div>
+            <audio id="main-audio-player" controls style="height: 32px; filter: invert(100%);"></audio>
+            <button onclick="window.closePlayer()" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        window.playPreview = function(id, title, artist) {
+            const player = document.getElementById('audio-preview-player');
+            const audio = document.getElementById('main-audio-player');
+            const titleEl = document.getElementById('player-song-title');
+            const artistEl = document.getElementById('player-song-artist');
+
+            titleEl.innerText = title;
+            artistEl.innerText = artist;
+            audio.src = '/stream/' + id;
+            player.style.display = 'block';
+            audio.play();
+        };
+
+        window.closePlayer = function() {
+            const player = document.getElementById('audio-preview-player');
+            const audio = document.getElementById('main-audio-player');
+            audio.pause();
+            player.style.display = 'none';
+        };
+    </script>
 </body>
 </html>

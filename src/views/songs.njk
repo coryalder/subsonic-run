@@ -21,7 +21,13 @@
                     {% endif %}
                 </div>
             </div>
-            <div style="font-size: 0.9rem; color: #666; text-align: right; display: flex; align-items: center; gap: 1rem;">
+            <div style="font-size: 0.9rem; color: #666; text-align: right; display: flex; align-items: center; gap: 0.8rem;">
+                <button type="button" 
+                        class="preview-btn"
+                        style="background: #f0f0f0; color: #333; border: 1px solid #ddd; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;"
+                        onclick="window.playPreview('{{ song.id }}', '{{ song.title }}', '{{ song.artist }}')">
+                    Preview
+                </button>
                 <div>
                     {% if song.bpm %}
                         <div style="font-weight: bold; color: #1db954;">{{ song.bpm }} BPM</div>
