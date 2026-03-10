@@ -157,7 +157,7 @@
     </div>
 
     <script>
-        window.playPreview = function(id, title, artist) {
+        window.playPreview = function(id, title, artist, isRunMix = false) {
             const player = document.getElementById('audio-preview-player');
             const audio = document.getElementById('main-audio-player');
             const titleEl = document.getElementById('player-song-title');
@@ -165,7 +165,7 @@
 
             titleEl.innerText = title;
             artistEl.innerText = artist;
-            audio.src = '/stream/' + id;
+            audio.src = isRunMix ? '/output/' + id + '.mp3' : '/stream/' + id;
             player.style.display = 'block';
             audio.play();
         };

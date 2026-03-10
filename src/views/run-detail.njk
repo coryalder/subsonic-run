@@ -25,6 +25,20 @@
             </div>
         </div>
 
+        {% if run.status == 'completed' %}
+        <div style="margin-bottom: 2rem; background: #1db954; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; color: white;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem;">Run Mix Ready!</h3>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.9rem;">Listen to your stitched workout mix now.</p>
+            </div>
+            <button onclick="window.playPreview('{{ run.id }}', '{{ run.name | escape }}', 'Workout Mix', true)" 
+                    style="background: white; color: #1db954; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+                    {% if not run.outputPath %}disabled style="background: #ccc; cursor: not-allowed;"{% endif %}>
+                Listen to Mix
+            </button>
+        </div>
+        {% endif %}
+
         <div style="margin-bottom: 2rem; text-align: right;">
             <button hx-post="/run/{{ run.id }}/regenerate" 
                     hx-target="body" 
@@ -49,16 +63,32 @@
 
             {% if run.program.intervals %}
             <div style="margin-top: 1.5rem;">
-                <h4 style="margin-bottom: 0.5rem;">Intervals</h4>
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
+                    <h4 style="margin: 0;">Interval Timeline</h4>
+                    <span style="font-size: 0.8rem; color: #666;">Total: {{ run.program.intervals | sumIntervals | formatDuration }}</span>
+                </div>
+                
+                <div style="display: flex; height: 30px; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; background: #eee;">
+                    {% set totalDuration = run.program.intervals | sumIntervals %}
                     {% for interval in run.program.intervals %}
-                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: white; border-radius: 6px; border: 1px solid #eee; font-size: 0.9rem;">
-                        <span style="font-weight: bold; color: {% if interval.type == 'run' %}#e74c3c{% elif interval.type == 'walk' %}#3498db{% else %}#95a5a6{% endif %}; text-transform: capitalize;">
-                            {{ interval.type }}
-                        </span>
-                        <span>{{ interval.duration | formatDuration }}</span>
-                    </div>
+                        <div style="width: {{ (interval.duration / totalDuration) * 100 }}%; 
+                                    background: {% if interval.type == 'run' %}#e74c3c{% elif interval.type == 'walk' %}#3498db{% elif interval.type == 'warmup' or interval.type == 'cooldown' %}#95a5a6{% else %}#ddd{% endif %};
+                                    height: 100%; border-right: 1px solid rgba(255,255,255,0.2);"
+                             title="{{ interval.type | capitalize }}: {{ interval.duration | formatDuration }}">
+                        </div>
                     {% endfor %}
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; font-size: 0.75rem; color: #666;">
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <div style="width: 12px; height: 12px; background: #e74c3c; border-radius: 2px;"></div> Run
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <div style="width: 12px; height: 12px; background: #3498db; border-radius: 2px;"></div> Walk
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        <div style="width: 12px; height: 12px; background: #95a5a6; border-radius: 2px;"></div> Warmup/Cooldown
+                    </div>
                 </div>
             </div>
             {% endif %}

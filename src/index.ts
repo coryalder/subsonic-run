@@ -34,6 +34,13 @@ fastify.register(fastifyStatic, {
   prefix: '/static/',
 });
 
+// Register output directory as static for direct playback
+fastify.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'output'),
+  prefix: '/output/',
+  decorateReply: false
+});
+
 // Register Nunjucks
 const env = nunjucks.configure(path.join(__dirname, 'views'), {
   autoescape: true,
@@ -61,6 +68,9 @@ fastify.register(view, {
       });
       env.addFilter('sumDurations', (songs: any[]) => {
         return (songs || []).reduce((sum, s) => sum + (s.duration || 0), 0);
+      });
+      env.addFilter('sumIntervals', (intervals: any[]) => {
+        return (intervals || []).reduce((sum, i) => sum + (i.duration || 0), 0);
       });
     }
   },
