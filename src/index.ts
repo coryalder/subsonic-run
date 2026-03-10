@@ -56,6 +56,12 @@ fastify.register(view, {
         const date = new Date(dateStr);
         return date.toLocaleString();
       });
+      env.addFilter('filterByStatus', (songs: any[], status: string) => {
+        return (songs || []).filter(s => s.status === status);
+      });
+      env.addFilter('sumDurations', (songs: any[]) => {
+        return (songs || []).reduce((sum, s) => sum + (s.duration || 0), 0);
+      });
     }
   },
   root: path.join(__dirname, 'views')

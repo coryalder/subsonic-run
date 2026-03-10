@@ -67,73 +67,73 @@
         {% if run.songs.length > 0 %}
         <div style="margin-bottom: 2rem;">
             <h3>Playlist</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <!-- Slow Songs Column -->
                 <div>
-                    <h4 style="color: #1565c0; border-bottom: 2px solid #e3f2fd; padding-bottom: 0.5rem; margin-bottom: 1rem;">Slow Songs</h4>
+                    <div style="margin-bottom: 1rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; color: #1565c0;">
+                            <span>Slow Songs</span>
+                            <span>{{ (run.songs | filterByStatus('slow') | sumDurations) | formatDuration }}</span>
+                        </div>
+                    </div>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         {% set slowCount = 0 %}
                         {% for song in run.songs %}
                             {% if song.status == 'slow' %}
                                 {% set slowCount = slowCount + 1 %}
-                                <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div style="flex-grow: 1; overflow: hidden;">
-                                            <div style="font-weight: bold; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title | default(song.id) }}</div>
-                                            <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</div>
-                                        </div>
-                                        <button type="button" 
-                                                style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.65rem; margin-left: 0.5rem;"
-                                                onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">
-                                            Play
-                                        </button>
+                                <div class="playlist-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.8rem; background: white; border: 1px solid #eee; border-radius: 6px; font-size: 0.9rem;">
+                                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1; margin-right: 1rem;">
+                                        <strong>{{ song.title | default(song.id) }}</strong>
+                                        <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</div>
                                     </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
-                                        <span style="font-size: 0.7rem; color: #888;">{{ song.duration | formatDuration }}</span>
-                                        {% if song.bpm %}
-                                        <span style="font-size: 0.7rem; color: #1565c0; font-weight: bold;">{{ song.bpm }} BPM</span>
-                                        {% endif %}
+                                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                        <span style="font-size: 0.8rem; color: #666;">{{ song.duration | formatDuration }}</span>
+                                        <button type="button" 
+                                                style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.65rem;"
+                                                onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">
+                                            Preview
+                                        </button>
                                     </div>
                                 </div>
                             {% endif %}
                         {% endfor %}
                         {% if slowCount == 0 %}
-                            <p style="color: #888; font-size: 0.9rem; text-align: center;">No slow songs.</p>
+                            <p style="color: #888; font-size: 0.9rem; text-align: center; padding: 1rem;">No slow songs.</p>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- Fast Songs Column -->
                 <div>
-                    <h4 style="color: #c62828; border-bottom: 2px solid #ffebee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Fast Songs</h4>
+                    <div style="margin-bottom: 1rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; color: #c62828;">
+                            <span>Fast Songs</span>
+                            <span>{{ (run.songs | filterByStatus('fast') | sumDurations) | formatDuration }}</span>
+                        </div>
+                    </div>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         {% set fastCount = 0 %}
                         {% for song in run.songs %}
                             {% if song.status == 'fast' %}
                                 {% set fastCount = fastCount + 1 %}
-                                <div class="list-item" style="border: 1px solid #eee; border-radius: 8px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div style="flex-grow: 1; overflow: hidden;">
-                                            <div style="font-weight: bold; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title | default(song.id) }}</div>
-                                            <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</div>
-                                        </div>
-                                        <button type="button" 
-                                                style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.65rem; margin-left: 0.5rem;"
-                                                onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">
-                                            Play
-                                        </button>
+                                <div class="playlist-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.8rem; background: white; border: 1px solid #eee; border-radius: 6px; font-size: 0.9rem;">
+                                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1; margin-right: 1rem;">
+                                        <strong>{{ song.title | default(song.id) }}</strong>
+                                        <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</div>
                                     </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
-                                        <span style="font-size: 0.7rem; color: #888;">{{ song.duration | formatDuration }}</span>
-                                        {% if song.bpm %}
-                                        <span style="font-size: 0.7rem; color: #c62828; font-weight: bold;">{{ song.bpm }} BPM</span>
-                                        {% endif %}
+                                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                        <span style="font-size: 0.8rem; color: #666;">{{ song.duration | formatDuration }}</span>
+                                        <button type="button" 
+                                                style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.65rem;"
+                                                onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">
+                                            Preview
+                                        </button>
                                     </div>
                                 </div>
                             {% endif %}
                         {% endfor %}
                         {% if fastCount == 0 %}
-                            <p style="color: #888; font-size: 0.9rem; text-align: center;">No fast songs.</p>
+                            <p style="color: #888; font-size: 0.9rem; text-align: center; padding: 1rem;">No fast songs.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -141,10 +141,6 @@
         </div>
         {% endif %}
 
-        <div style="border-top: 1px solid #eee; padding-top: 1.5rem;">
-            <h3>Raw Run Data</h3>
-            <pre style="background: #222; color: #eee; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem;">{{ run | dump(2) }}</pre>
-        </div>
     </div>
 </div>
 {% endblock %}
