@@ -1,24 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import SubsonicAPI from 'subsonic-api';
-
-let cachedArtists: any[] | null = null;
-let lastCacheTime = 0;
-const CACHE_TTL = 1000 * 60 * 10; // 10 minutes
-
-async function getArtists(subsonic: SubsonicAPI) {
-  const now = Date.now();
-  if (cachedArtists && (now - lastCacheTime < CACHE_TTL)) {
-    return cachedArtists;
-  }
-
-  const artistsResponse = await subsonic.getArtists();
-  if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
-    cachedArtists = artistsResponse.artists.index.flatMap((i: any) => i.artist);
-    lastCacheTime = now;
-    return cachedArtists;
-  }
-  return [];
-}
+import { getCached } from './cache.js';
 
 export default async function musicRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
@@ -26,7 +8,14 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
   // Artists fragment
   fastify.get('/artists', async (request, reply) => {
     const { offset = 0, size = 15 } = request.query as { offset?: number, size?: number };
-    const artists = await getArtists(subsonic);
+    
+    const artists = await getCached('all_artists', async () => {
+      const response = await subsonic.getArtists();
+      if (response.status === 'ok' && response.artists?.index) {
+        return response.artists.index.flatMap((i: any) => i.artist);
+      }
+      return [];
+    });
     
     const paginatedArtists = artists.slice(Number(offset), Number(offset) + Number(size));
     const nextOffset = Number(offset) + Number(size);
@@ -47,12 +36,12 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
   // Artist detail (albums)
   fastify.get('/artist/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const response = await subsonic.getArtist({ id });
+    const data = await getCached(`artist_${id}`, () => subsonic.getArtist({ id }));
     let artist = null;
     let albums: any[] = [];
-    if (response.status === 'ok') {
-      artist = response.artist;
-      albums = response.artist.album || [];
+    if (data.status === 'ok') {
+      artist = data.artist;
+      albums = data.artist.album || [];
     }
     return reply.view('albums.njk', { artist, albums, currentView: 'artists' });
   });
@@ -60,7 +49,9 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
   // Albums list (general)
   fastify.get('/albums', async (request, reply) => {
     const { offset = 0, size = 15 } = request.query as { offset?: number, size?: number };
-    const response = await subsonic.getAlbumList({ type: 'newest', size: Number(size), offset: Number(offset) });
+    const response = await getCached(`album_list_${offset}_${size}`, () => 
+      subsonic.getAlbumList({ type: 'newest', size: Number(size), offset: Number(offset) })
+    );
     let albums: any[] = [];
     if (response.status === 'ok' && response.albumList?.album) {
       albums = response.albumList.album;
@@ -85,19 +76,19 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
   // Album detail (songs)
   fastify.get('/album/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const response = await subsonic.getAlbum({ id });
+    const data = await getCached(`album_${id}`, () => subsonic.getAlbum({ id }));
     let album = null;
     let songs: any[] = [];
-    if (response.status === 'ok') {
-      album = response.album;
-      songs = response.album.song || [];
+    if (data.status === 'ok') {
+      album = data.album;
+      songs = data.album.song || [];
     }
     return reply.view('songs.njk', { album, songs, currentView: 'albums' });
   });
 
   // Playlists list
   fastify.get('/playlists', async (request, reply) => {
-    const response = await subsonic.getPlaylists();
+    const response = await getCached('playlists', () => subsonic.getPlaylists());
     let playlists: any[] = [];
     if (response.status === 'ok' && response.playlists.playlist) {
       playlists = response.playlists.playlist;
@@ -108,12 +99,12 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
   // Playlist detail (songs)
   fastify.get('/playlist/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const response = await subsonic.getPlaylist({ id });
+    const data = await getCached(`playlist_${id}`, () => subsonic.getPlaylist({ id }));
     let playlist = null;
     let songs: any[] = [];
-    if (response.status === 'ok') {
-      playlist = response.playlist;
-      songs = response.playlist.entry || [];
+    if (data.status === 'ok') {
+      playlist = data.playlist;
+      songs = data.playlist.entry || [];
     }
     return reply.view('songs.njk', { playlist, songs, currentView: 'playlists' });
   });
