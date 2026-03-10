@@ -1,6 +1,6 @@
 <div 
     id="run-status-badge"
-    hx-trigger="every 10s"
+    {% if run.status != 'completed' and run.status != 'failed' %}hx-trigger="every 10s"{% endif %}
     hx-get="/run/{{ run.id }}/status"
     hx-swap="outerHTML"
     style="display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; text-transform: uppercase;
