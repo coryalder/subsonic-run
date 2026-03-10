@@ -8,69 +8,56 @@
 
 {% block content %}
     {% if artists.length > 0 %}
-        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-bottom: 0.5rem;">Artists</h3>
-        <ul class="picker-grid" style="grid-auto-columns: 140px;">
+        <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-bottom: 1px solid #eee;">Artists</h3>
+        <ul class="picker-list">
             {% for artist in artists %}
-                <li class="card" hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #999;">
-                        {{ artist.name[0] | upper }}
+                <li hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <div class="picker-list-info">
+                        <div class="picker-list-title">{{ artist.name }}</div>
                     </div>
-                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">{{ artist.name }}</div>
+                    <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
                 </li>
             {% endfor %}
         </ul>
     {% endif %}
 
     {% if albums.length > 0 %}
-        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Albums</h3>
-        <ul class="picker-grid" style="grid-auto-columns: 140px;">
+        <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">Albums</h3>
+        <ul class="picker-list">
             {% for album in albums %}
-                <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    {% if album.coverArt %}
-                        <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
-                    {% else %}
-                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                            No Image
-                        </div>
-                    {% endif %}
-                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">{{ album.title }}</div>
-                    <div style="font-size: 0.75rem; color: #666;">{{ album.artist }}</div>
+                <li hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <div class="picker-list-info">
+                        <div class="picker-list-title">{{ album.title }}</div>
+                        <div class="picker-list-subtitle">{{ album.artist }}</div>
+                    </div>
+                    <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
                 </li>
             {% endfor %}
         </ul>
     {% endif %}
 
     {% if playlists.length > 0 %}
-        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Playlists</h3>
-        <ul class="picker-grid" style="grid-auto-columns: 140px;">
+        <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">Playlists</h3>
+        <ul class="picker-list">
             {% for playlist in playlists %}
-                <li class="card" hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                    {% if playlist.coverArt %}
-                        <img src="/artwork/{{ playlist.coverArt }}" alt="{{ playlist.name }}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
-                    {% else %}
-                        <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                            No Image
-                        </div>
-                    {% endif %}
-                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">{{ playlist.name }}</div>
-                    <div style="font-size: 0.75rem; color: #666;">{{ playlist.songCount }} songs</div>
+                <li hx-get="/playlist/{{ playlist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+                    <div class="picker-list-info">
+                        <div class="picker-list-title">{{ playlist.name }}</div>
+                        <div class="picker-list-subtitle">{{ playlist.songCount }} songs</div>
+                    </div>
+                    <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
                 </li>
             {% endfor %}
         </ul>
     {% endif %}
 
     {% if songs.length > 0 %}
-        <h3 style="padding: 0 0.5rem; font-size: 1rem; color: #666; margin-top: 1.5rem; margin-bottom: 0.5rem;">Songs</h3>
-        <div style="background: white; border-radius: 8px; overflow: hidden; margin: 0 0.5rem;">
+        <h3 style="padding: 0.5rem 1rem; font-size: 1rem; color: #666; margin: 0; background: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">Songs</h3>
+        <div class="picker-list">
             {% for song in songs %}
-                <div class="list-item" style="padding: 8px 10px;">
-                    <div style="width: 32px; height: 32px; background: #eee; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
-                        {% if song.coverArt %}
-                            <img src="/artwork/{{ song.coverArt }}" style="width: 100%; height: 100%; object-fit: cover;">
-                        {% endif %}
-                    </div>
+                <div class="list-item" style="padding: 0.8rem 1rem;">
                     <div class="song-info">
-                        <div class="song-title" style="font-size: 0.9rem;">{{ song.title }}</div>
+                        <div class="song-title" style="font-size: 0.95rem;">{{ song.title }}</div>
                         <div class="song-meta" style="font-size: 0.8rem; color: #666;">{{ song.artist }} - {{ song.album }}</div>
                     </div>
                     <div style="font-size: 0.8rem; color: #666; text-align: right;">

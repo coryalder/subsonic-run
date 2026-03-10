@@ -1,3 +1,4 @@
+{% if not isPartial %}
 {% extends "picker.njk" %}
 
 {% block header %}
@@ -5,20 +6,34 @@
 {% endblock %}
 
 {% block content %}
-    <ul class="picker-grid">
+    <ul class="picker-list">
         {% for artist in artists %}
-            <li class="card" hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                {% if artist.coverArt %}
-                    <img src="/artwork/{{ artist.coverArt }}" alt="{{ artist.name }}">
-                {% else %}
-                    <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                        No Image
-                    </div>
-                {% endif %}
-                <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ artist.name }}</div>
+            {% if loop.last and hasMore %}
+            <li hx-get="/artists?offset={{ nextOffset }}" hx-trigger="revealed" hx-swap="afterend">
+            {% else %}
+            <li hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+            {% endif %}
+                <div class="picker-list-info">
+                    <div class="picker-list-title">{{ artist.name }}</div>
+                </div>
+                <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
             </li>
         {% else %}
-            <li>No artists found.</li>
+            <li style="padding: 1rem; color: #666;">No artists found.</li>
         {% endfor %}
     </ul>
 {% endblock %}
+{% else %}
+    {% for artist in artists %}
+        {% if loop.last and hasMore %}
+        <li hx-get="/artists?offset={{ nextOffset }}" hx-trigger="revealed" hx-swap="afterend">
+        {% else %}
+        <li hx-get="/artist/{{ artist.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+        {% endif %}
+            <div class="picker-list-info">
+                <div class="picker-list-title">{{ artist.name }}</div>
+            </div>
+            <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+        </li>
+    {% endfor %}
+{% endif %}

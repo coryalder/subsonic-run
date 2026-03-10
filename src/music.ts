@@ -6,12 +6,22 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
 
   // Artists fragment
   fastify.get('/artists', async (request, reply) => {
+    const { offset = 0, size = 50 } = request.query as { offset?: number, size?: number };
     const artistsResponse = await subsonic.getArtists();
     let artists: any[] = [];
     if (artistsResponse.status === 'ok' && artistsResponse.artists?.index) {
       artists = artistsResponse.artists.index.flatMap(i => i.artist);
     }
-    return reply.view('artists.njk', { artists, currentView: 'artists' });
+    
+    const paginatedArtists = artists.slice(Number(offset), Number(offset) + Number(size));
+    const nextOffset = Number(offset) + Number(size);
+    const hasMore = nextOffset < artists.length;
+
+    if (request.headers['hx-request'] && offset > 0) {
+      return reply.view('artists.njk', { artists: paginatedArtists, nextOffset, hasMore, isPartial: true });
+    }
+    
+    return reply.view('artists.njk', { artists: paginatedArtists, nextOffset, hasMore, currentView: 'artists' });
   });
 
   // Artist detail (albums)
@@ -29,12 +39,21 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
 
   // Albums list (general)
   fastify.get('/albums', async (request, reply) => {
-    const response = await subsonic.getAlbumList({ type: 'newest', size: 50 });
+    const { offset = 0, size = 50 } = request.query as { offset?: number, size?: number };
+    const response = await subsonic.getAlbumList({ type: 'newest', size: Number(size), offset: Number(offset) });
     let albums: any[] = [];
     if (response.status === 'ok' && response.albumList?.album) {
       albums = response.albumList.album;
     }
-    return reply.view('albums.njk', { albums, title: 'Newest Albums', currentView: 'albums' });
+
+    const nextOffset = Number(offset) + Number(size);
+    const hasMore = albums.length === Number(size);
+
+    if (request.headers['hx-request'] && offset > 0) {
+      return reply.view('albums.njk', { albums, nextOffset, hasMore, isPartial: true });
+    }
+
+    return reply.view('albums.njk', { albums, nextOffset, hasMore, title: 'Newest Albums', currentView: 'albums' });
   });
 
   // Album detail (songs)

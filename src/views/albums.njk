@@ -1,3 +1,4 @@
+{% if not isPartial %}
 {% extends "picker.njk" %}
 
 {% block header %}
@@ -8,21 +9,36 @@
 {% endblock %}
 
 {% block content %}
-    <ul class="picker-grid">
+    <ul class="picker-list">
         {% for album in albums %}
-            <li class="card" hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
-                {% if album.coverArt %}
-                    <img src="/artwork/{{ album.coverArt }}" alt="{{ album.title }}">
-                {% else %}
-                    <div style="width: 100%; aspect-ratio: 1; background: #eee; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                        No Image
-                    </div>
-                {% endif %}
-                <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ album.title }}</div>
-                <div style="font-size: 0.8rem; color: #666;">{{ album.year }}</div>
+            {% if loop.last and hasMore and not artist %}
+            <li hx-get="/albums?offset={{ nextOffset }}" hx-trigger="revealed" hx-swap="afterend">
+            {% else %}
+            <li hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+            {% endif %}
+                <div class="picker-list-info">
+                    <div class="picker-list-title">{{ album.title }}</div>
+                    <div class="picker-list-subtitle">{{ album.year }}</div>
+                </div>
+                <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
             </li>
         {% else %}
-            <li>No albums found.</li>
+            <li style="padding: 1rem; color: #666;">No albums found.</li>
         {% endfor %}
     </ul>
 {% endblock %}
+{% else %}
+    {% for album in albums %}
+        {% if loop.last and hasMore and not artist %}
+        <li hx-get="/albums?offset={{ nextOffset }}" hx-trigger="revealed" hx-swap="afterend">
+        {% else %}
+        <li hx-get="/album/{{ album.id }}" hx-target="closest .picker-widget" hx-swap="outerHTML">
+        {% endif %}
+            <div class="picker-list-info">
+                <div class="picker-list-title">{{ album.title }}</div>
+                <div class="picker-list-subtitle">{{ album.year }}</div>
+            </div>
+            <div style="color: #ccc; font-size: 0.8rem;">&rsaquo;</div>
+        </li>
+    {% endfor %}
+{% endif %}
