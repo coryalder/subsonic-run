@@ -98,6 +98,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       name,
       programId,
       startTime: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       songs,
       status: 'pending'
     };
@@ -204,6 +205,105 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send('Error fetching status');
+    }
+  });
+
+  // Update Run Title
+  fastify.post('/run/:id/update-title', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { name } = request.body as { name: string };
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      run.name = name;
+      run.updatedAt = new Date().toISOString();
+      await fs.writeFile(filePath, JSON.stringify(run, null, 2));
+      return reply.status(204).send();
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Error updating title');
+    }
+  });
+
+  // Reorder Songs
+  fastify.post('/run/:id/reorder-songs', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { direction, index } = request.body as { direction: 'up' | 'down', index: number };
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      if (!run.songs) return reply.status(400).send('No songs to reorder');
+
+      const i = Number(index);
+      const status = run.songs[i].status;
+      
+      let targetIndex = -1;
+      if (direction === 'up') {
+        for (let j = i - 1; j >= 0; j--) {
+          if (run.songs[j].status === status) {
+            targetIndex = j;
+            break;
+          }
+        }
+      } else if (direction === 'down') {
+        for (let j = i + 1; j < run.songs.length; j++) {
+          if (run.songs[j].status === status) {
+            targetIndex = j;
+            break;
+          }
+        }
+      }
+
+      if (targetIndex !== -1) {
+        [run.songs[i], run.songs[targetIndex]] = [run.songs[targetIndex], run.songs[i]];
+      }
+
+      run.updatedAt = new Date().toISOString();
+      await fs.writeFile(filePath, JSON.stringify(run, null, 2));
+      
+      const programs = await loadPrograms();
+      const program = programs.find(p => p.id === run.programId);
+      
+      const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
+      return reply.view(template, { run: { ...run, id, program }, currentView: 'runs' });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Error reordering songs');
+    }
+  });
+
+  // Toggle Song Status
+  fastify.post('/run/:id/toggle-song-status', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { index } = request.body as { index: number };
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      if (!run.songs) return reply.status(400).send('No songs to toggle');
+
+      const i = Number(index);
+      run.songs[i].status = run.songs[i].status === 'fast' ? 'slow' : 'fast';
+
+      run.updatedAt = new Date().toISOString();
+      await fs.writeFile(filePath, JSON.stringify(run, null, 2));
+      
+      const programs = await loadPrograms();
+      const program = programs.find(p => p.id === run.programId);
+      
+      const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
+      return reply.view(template, { run: { ...run, id, program }, currentView: 'runs' });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Error toggling song status');
     }
   });
 

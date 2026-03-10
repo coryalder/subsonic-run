@@ -29,4 +29,6 @@ export interface Run {
   }[];
   status: 'pending' | 'downloading' | 'stitching' | 'completed' | 'failed';
   outputPath?: string;
+  updatedAt?: string;
+  stitchedAt?: string;
 }

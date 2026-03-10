@@ -72,6 +72,10 @@ fastify.register(view, {
       env.addFilter('sumIntervals', (intervals: any[]) => {
         return (intervals || []).reduce((sum, i) => sum + (i.duration || 0), 0);
       });
+      env.addFilter('isModified', (run: any) => {
+        if (run.status !== 'completed' || !run.stitchedAt || !run.updatedAt) return false;
+        return new Date(run.updatedAt) > new Date(run.stitchedAt);
+      });
     }
   },
   root: path.join(__dirname, 'views')

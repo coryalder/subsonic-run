@@ -4,10 +4,11 @@
     hx-get="/run/{{ run.id }}/status"
     hx-swap="outerHTML"
     style="display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; text-transform: uppercase;
-        {% if run.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
+        {% if run | isModified %}background: #fff3e0; color: #ef6c00;
+        {% elif run.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
         {% elif run.status == 'failed' %}background: #ffebee; color: #c62828;
         {% else %}background: #fff3e0; color: #ef6c00;{% endif %}">
-    Status: {{ run.status }}
+    Status: {% if run | isModified %}Modified (Needs Regeneration){% else %}{{ run.status }}{% endif %}
     <button hx-post="/run/{{ run.id }}/regenerate" 
             hx-target="body" 
             hx-swap="outerHTML"

@@ -26,6 +26,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     const run = JSON.parse(content) as Run;
     run.status = status;
     if (outputPath) run.outputPath = outputPath;
+    if (status === 'completed') run.stitchedAt = new Date().toISOString();
     await fs.writeFile(runFilePath, JSON.stringify(run, null, 2));
     console.log(`Run ${runId} status updated to: ${status}`);
   };
