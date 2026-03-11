@@ -9,6 +9,10 @@ import { loadPrograms, saveProgram } from './programs.js';
 export default async function runRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
 
+  const dataDir = path.join(process.cwd(), 'data');
+  const runsDir = path.join(dataDir, 'runs');
+  const programsDir = path.join(dataDir, 'programs');
+
   // Create Run Page
   fastify.get('/create-run', async (request, reply) => {
     const programs = await loadPrograms();
@@ -17,16 +21,15 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
 
   // View Runs Page
   const viewRunsHandler = async (request: any, reply: any) => {
-    const dataDir = path.join(process.cwd(), 'data');
     let runs: Run[] = [];
     
     try {
-      await fs.mkdir(dataDir, { recursive: true });
-      const files = await fs.readdir(dataDir);
+      await fs.mkdir(runsDir, { recursive: true });
+      const files = await fs.readdir(runsDir);
       const jsonFiles = files.filter(f => f.endsWith('.json') && f.startsWith('run-'));
       
       const runPromises = jsonFiles.map(async (file) => {
-        const content = await fs.readFile(path.join(dataDir, file), 'utf-8');
+        const content = await fs.readFile(path.join(runsDir, file), 'utf-8');
         const data = JSON.parse(content) as Run;
         return { ...data, id: file.replace('.json', '') };
       });
@@ -92,8 +95,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   // Run Details Page
   fastify.get('/run/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, `${id}.json`);
+    const filePath = path.join(runsDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -151,13 +153,12 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       status: RunStatus.PENDING
     };
 
-    const dataDir = path.join(process.cwd(), 'data');
     const runId = `run-${Date.now()}`;
     const fileName = `${runId}.json`;
-    const filePath = path.join(dataDir, fileName);
+    const filePath = path.join(runsDir, fileName);
 
     try {
-      await fs.mkdir(dataDir, { recursive: true });
+      await fs.mkdir(runsDir, { recursive: true });
       await fs.writeFile(filePath, JSON.stringify(runData, null, 2));
       
       // Trigger background processing (no await)
@@ -179,8 +180,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     const { id } = request.params as { id: string };
 
     try {
-      const dataDir = path.join(process.cwd(), 'data');
-      const filePath = path.join(dataDir, `${id}.json`);
+      const filePath = path.join(runsDir, `${id}.json`);
       const content = await fs.readFile(filePath, 'utf-8');
       const run = JSON.parse(content) as Run;
       
