@@ -4,7 +4,7 @@ import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
 import { Program, Run } from './types.js';
 import { processRun } from './processor.js';
-import { loadPrograms } from './programs.js';
+import { loadPrograms, saveProgram } from './programs.js';
 
 export default async function runRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
@@ -48,6 +48,45 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   fastify.get('/programs', async (request, reply) => {
     const programs = await loadPrograms();
     return reply.view('programs.njk', { programs });
+  });
+
+  // Create Program Page
+  fastify.get('/create-program', async (request, reply) => {
+    return reply.view('create-program.njk');
+  });
+
+  // Handle Create Program Submission
+  fastify.post('/create-program', async (request, reply) => {
+    const { id, name, difficulty, description, types, durations } = request.body as {
+      id: string;
+      name: string;
+      difficulty: string;
+      description: string;
+      types: string[];
+      durations: string[];
+    };
+
+    const intervals = types.map((type, index) => ({
+      type: type as 'warmup' | 'run' | 'walk' | 'cooldown',
+      duration: parseInt(durations[index]),
+    }));
+
+    const newProgram: Omit<Program, 'slowDuration' | 'fastDuration'> = {
+      id,
+      name,
+      difficulty: parseInt(difficulty),
+      description,
+      intervals,
+    };
+
+    try {
+      await saveProgram(newProgram);
+      reply.header('HX-Redirect', '/programs');
+      return reply.status(204).send();
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Failed to create program');
+    }
   });
 
   // Run Details Page

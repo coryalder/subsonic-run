@@ -18,3 +18,13 @@ export async function loadPrograms(): Promise<Program[]> {
         .reduce((sum, i) => sum + i.duration, 0)
   }));
 }
+
+export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'>): Promise<void> {
+  const filePath = path.join(process.cwd(), 'programs.yaml');
+  const content = await fs.readFile(filePath, 'utf8');
+  const programs = yaml.load(content) as any[];
+  
+  programs.push(program);
+  
+  await fs.writeFile(filePath, yaml.dump(programs));
+}

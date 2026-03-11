@@ -15,7 +15,6 @@
       duration: 90
     - type: cooldown
       duration: 300
-
 - id: tempo-run
   name: Tempo Run
   difficulty: 3
@@ -27,7 +26,6 @@
       duration: 1200
     - type: cooldown
       duration: 600
-
 - id: speed-intervals
   name: Speed Intervals
   difficulty: 4
@@ -49,7 +47,6 @@
       duration: 60
     - type: cooldown
       duration: 600
-
 - id: endurance-build
   name: Endurance Build
   difficulty: 2
@@ -61,3 +58,39 @@
       duration: 1800
     - type: cooldown
       duration: 300
+- id: new-program-id
+  name: New Program
+  description: A newly added program
+  difficulty: 1
+  intervals:
+    - type: warmup
+      duration: 30
+    - type: run
+      duration: 100
+- id: new-program-id
+  name: New Program
+  description: A newly added program
+  difficulty: 1
+  intervals:
+    - type: warmup
+      duration: 30
+    - type: run
+      duration: 100
+- id: new-program-id
+  name: New Program
+  description: A newly added program
+  difficulty: 1
+  intervals:
+    - type: warmup
+      duration: 30
+    - type: run
+      duration: 100
+- id: new-program-id
+  name: New Program
+  description: A newly added program
+  difficulty: 1
+  intervals:
+    - type: warmup
+      duration: 30
+    - type: run
+      duration: 100
