@@ -3,28 +3,91 @@ import path from 'node:path';
 import yaml from 'js-yaml';
 import { Program } from './types.js';
 
-export async function loadPrograms(): Promise<Program[]> {
-  const filePath = path.join(process.cwd(), 'programs.yaml');
-  const content = await fs.readFile(filePath, 'utf8');
-  const programs = yaml.load(content) as Program[];
-  
-  return programs.map(p => ({
-    ...p,
-    slowDuration: p.intervals
-        .filter(i => ['walk', 'warmup', 'cooldown'].includes(i.type))
-        .reduce((sum, i) => sum + i.duration, 0),
-    fastDuration: p.intervals
-        .filter(i => i.type === 'run')
-        .reduce((sum, i) => sum + i.duration, 0)
-  }));
+const DATA_DIR = path.join(process.cwd(), 'data');
+const PROGRAMS_YAML_PATH = path.join(process.cwd(), 'programs.yaml');
+
+/**
+ * Helper function to calculate slowDuration and fastDuration for a program.
+ * It also ensures program.id is a string, as it might be missing or number from YAML.
+ */
+function _calculateDurations(program: Omit<Program, 'slowDuration' | 'fastDuration'>): Program {
+  const slowDuration = program.intervals
+    .filter(i => ['walk', 'warmup', 'cooldown'].includes(i.type))
+    .reduce((sum, i) => sum + i.duration, 0);
+  const fastDuration = program.intervals
+    .filter(i => i.type === 'run')
+    .reduce((sum, i) => sum + i.duration, 0);
+
+  return {
+    ...program,
+    slowDuration,
+    fastDuration,
+  };
 }
 
-export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'>): Promise<void> {
-  const filePath = path.join(process.cwd(), 'programs.yaml');
-  const content = await fs.readFile(filePath, 'utf8');
-  const programs = yaml.load(content) as any[];
+/**
+ * Checks if any program JSON files exist in the data directory.
+ */
+async function programExistsInDataDir(): Promise<boolean> {
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    const files = await fs.readdir(DATA_DIR);
+    return files.some(f => f.startsWith('program-') && f.endsWith('.json'));
+  } catch (error) {
+    console.error('Error checking data directory for programs:', error);
+    return false;
+  }
+}
+
+export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'> | Program): Promise<void> {
+  await fs.mkdir(DATA_DIR, { recursive: true });
   
-  programs.push(program);
+  const programWithDurations = ('slowDuration' in program && 'fastDuration' in program) 
+    ? program 
+    : _calculateDurations(program);
+
+  const filePath = path.join(DATA_DIR, `program-${programWithDurations.id}.json`);
+  await fs.writeFile(filePath, JSON.stringify(programWithDurations, null, 2));
+}
+
+export async function loadPrograms(): Promise<Program[]> {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  let programs: Program[] = [];
+
+  if (await programExistsInDataDir()) {
+    // Load from JSON files in data directory
+    const files = await fs.readdir(DATA_DIR);
+    const programFiles = files.filter(f => f.startsWith('program-') && f.endsWith('.json'));
+
+    const programPromises = programFiles.map(async (file) => {
+      const content = await fs.readFile(path.join(DATA_DIR, file), 'utf-8');
+      const programData = JSON.parse(content) as Program;
+      return _calculateDurations(programData); // Recalculate for robustness
+    });
+    programs = await Promise.all(programPromises);
+  } else {
+    // Populate from programs.yaml if no programs found in data directory
+    try {
+      const content = await fs.readFile(PROGRAMS_YAML_PATH, 'utf8');
+      const programsFromYaml = yaml.load(content) as Omit<Program, 'slowDuration' | 'fastDuration'>[];
+
+      if (programsFromYaml && programsFromYaml.length > 0) {
+        for (const program of programsFromYaml) {
+          const fullProgram = _calculateDurations(program);
+          await saveProgram(fullProgram); // Save to JSON file
+          programs.push(fullProgram);
+        }
+      }
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        console.warn('programs.yaml not found, starting with no programs.');
+      } else {
+        console.error('Error loading programs from programs.yaml:', error);
+      }
+    }
+  }
   
-  await fs.writeFile(filePath, yaml.dump(programs));
+  // Sort programs by name for consistent display
+  programs.sort((a, b) => a.name.localeCompare(b.name));
+  return programs;
 }
