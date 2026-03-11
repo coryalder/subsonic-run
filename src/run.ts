@@ -323,4 +323,44 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     }
   });
 
+  // Swap Song
+  fastify.post('/run/:id/swap-song', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const { index, song: songStr } = request.body as { index: string, song: string };
+    const dataDir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dataDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      if (!run.songs) return reply.status(400).send('No songs to swap');
+
+      const i = Number(index);
+      const newSong = JSON.parse(songStr);
+      
+      const currentStatus = run.songs[i].status;
+      
+      run.songs[i] = {
+        id: newSong.id,
+        status: currentStatus,
+        title: newSong.title,
+        artist: newSong.artist,
+        duration: newSong.duration,
+        bpm: newSong.bpm
+      };
+
+      run.updatedAt = new Date().toISOString();
+      await fs.writeFile(filePath, JSON.stringify(run, null, 2));
+      
+      const programs = await loadPrograms();
+      run.program = programs.find(p => p.id === run.programId);
+      
+      const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
+      return reply.view(template, { run: { ...run, id } });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Error swapping song');
+    }
+  });
+
 }

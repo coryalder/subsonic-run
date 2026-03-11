@@ -126,6 +126,7 @@
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                                         <span style="font-size: 0.75rem; color: #666;">{{ song.duration | formatDuration }}</span>
                                         <button type="button" style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.6rem;" onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">P</button>
+                                        <button type="button" style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.6rem; font-weight: bold;" onclick="window.openSwapModal({{ loop.index0 }})">S</button>
                                     </div>
                                 </div>
                             {% endif %}
@@ -162,6 +163,7 @@
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                                         <span style="font-size: 0.75rem; color: #666;">{{ song.duration | formatDuration }}</span>
                                         <button type="button" style="background: #f0f0f0; border: 1px solid #ddd; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.6rem;" onclick="window.playPreview('{{ song.id }}', '{{ (song.title | default(song.id)) | escape }}', '{{ song.artist | escape }}')">P</button>
+                                        <button type="button" style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; font-size: 0.6rem; font-weight: bold;" onclick="window.openSwapModal({{ loop.index0 }})">S</button>
                                     </div>
                                 </div>
                             {% endif %}
@@ -175,3 +177,56 @@
 
     </div>
 </div>
+
+<style>
+    .swap-mode .add-song-btn { display: block !important; }
+    #swap-modal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 2000;
+        align-items: center; justify-content: center;
+    }
+    #swap-modal .modal-content {
+        background: #f4f4f9; border-radius: 12px; width: 90%; max-width: 800px;
+        max-height: 90vh; overflow-y: auto; padding: 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+</style>
+
+<div id="swap-modal" class="swap-mode">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: white; border-bottom: 1px solid #eee;">
+            <h2 style="margin: 0;">Swap Song</h2>
+            <button onclick="document.getElementById('swap-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div id="swap-music-picker" style="padding: 1.5rem;"></div>
+    </div>
+</div>
+
+<script>
+    if (typeof window.currentSwapIndex === 'undefined') {
+        window.currentSwapIndex = null;
+    }
+    
+    window.openSwapModal = function(index) {
+        window.currentSwapIndex = index;
+        const picker = document.getElementById('swap-music-picker');
+        if (picker.innerHTML.trim() === '') {
+            htmx.ajax('GET', '/artists', {target: '#swap-music-picker'});
+        }
+        document.getElementById('swap-modal').style.display = 'flex';
+    };
+
+    window.addSongToPlaylist = function(song) {
+        if (window.currentSwapIndex === null) return;
+        
+        htmx.ajax('POST', '/run/{{ run.id }}/swap-song', {
+            target: '#run-detail-wrapper',
+            values: {
+                index: window.currentSwapIndex,
+                song: JSON.stringify(song)
+            }
+        }).then(() => {
+            document.getElementById('swap-modal').style.display = 'none';
+        });
+    };
+</script>
