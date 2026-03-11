@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import yaml from 'js-yaml';
-import { Program } from './types.js';
+import { Program, IntervalType, IntervalIsSlow } from './types.js';
 
 const PROGRAMS_DIR = path.join(process.cwd(), 'data', 'programs');
 const PROGRAMS_YAML_PATH = path.join(process.cwd(), 'programs.yaml');
@@ -12,10 +12,10 @@ const PROGRAMS_YAML_PATH = path.join(process.cwd(), 'programs.yaml');
  */
 function _calculateDurations(program: Omit<Program, 'slowDuration' | 'fastDuration'>): Program {
   const slowDuration = program.intervals
-    .filter(i => ['walk', 'warmup', 'cooldown'].includes(i.type))
+    .filter(IntervalIsSlow)
     .reduce((sum, i) => sum + i.duration, 0);
   const fastDuration = program.intervals
-    .filter(i => i.type === 'run')
+    .filter(i => i.type === IntervalType.RUN)
     .reduce((sum, i) => sum + i.duration, 0);
 
   return {
@@ -25,9 +25,34 @@ function _calculateDurations(program: Omit<Program, 'slowDuration' | 'fastDurati
   };
 }
 
+async function initializePrograms() {
+  let programs: Program[] = [];
+  // Populate from programs.yaml if no programs found in data directory
+  try {
+    console.log("copying programs from programs.yaml to data directory...");
+    const content = await fs.readFile(PROGRAMS_YAML_PATH, 'utf8');
+    const programsFromYaml = yaml.load(content) as Omit<Program, 'slowDuration' | 'fastDuration'>[];
+
+    if (programsFromYaml && programsFromYaml.length > 0) {
+      for (const program of programsFromYaml) {
+        const fullProgram = _calculateDurations(program);
+        await saveProgram(fullProgram); // Save to JSON file
+        programs.push(fullProgram);
+      }
+    }
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      console.warn('programs.yaml not found, starting with no programs.');
+    } else {
+      console.error('Error loading programs from programs.yaml:', error);
+    }
+  }
+
+  return programs;
+}
+
 export async function loadPrograms(): Promise<Program[]> {
   await fs.mkdir(PROGRAMS_DIR, { recursive: true });
-  let programs: Program[] = [];
 
   // Load from JSON files in data directory
   const files = await fs.readdir(PROGRAMS_DIR);
@@ -38,29 +63,11 @@ export async function loadPrograms(): Promise<Program[]> {
     const programData = JSON.parse(content) as Program;
     return _calculateDurations(programData); // Recalculate for robustness
   });
-  programs = await Promise.all(programPromises);
+
+  let programs: Program[] = await Promise.all(programPromises);
 
   if (programs.length === 0) {
-    // Populate from programs.yaml if no programs found in data directory
-    try {
-      console.log("copying programs from programs.yaml to data directory...");
-      const content = await fs.readFile(PROGRAMS_YAML_PATH, 'utf8');
-      const programsFromYaml = yaml.load(content) as Omit<Program, 'slowDuration' | 'fastDuration'>[];
-
-      if (programsFromYaml && programsFromYaml.length > 0) {
-        for (const program of programsFromYaml) {
-          const fullProgram = _calculateDurations(program);
-          await saveProgram(fullProgram); // Save to JSON file
-          programs.push(fullProgram);
-        }
-      }
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        console.warn('programs.yaml not found, starting with no programs.');
-      } else {
-        console.error('Error loading programs from programs.yaml:', error);
-      }
-    }
+    programs = await initializePrograms();
   }
   
   // Sort programs by name for consistent display

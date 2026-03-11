@@ -5,9 +5,17 @@ export enum IntervalType {
   COOLDOWN = 'cooldown',
 }
 
+export function IntervalTypeIsSlow(type: IntervalType) {
+  return [IntervalType.WALK, IntervalType.WARMUP, IntervalType.COOLDOWN].includes(type);
+}
+
 export interface Interval {
   type: IntervalType;
   duration: number; // in seconds
+}
+
+export function IntervalIsSlow(interval: Interval) {
+  return IntervalTypeIsSlow(interval.type);
 }
 
 export interface Program {
