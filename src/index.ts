@@ -42,6 +42,13 @@ fastify.register(fastifyStatic, {
   decorateReply: false
 });
 
+// Register public directory for custom scripts
+fastify.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'public'),
+  prefix: '/public/',
+  decorateReply: false
+});
+
 // Register Nunjucks
 const env = nunjucks.configure(path.join(__dirname, 'views'), {
   autoescape: true,
