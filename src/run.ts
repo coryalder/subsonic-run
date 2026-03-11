@@ -113,6 +113,28 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     }
   });
 
+  // Run Details Fragment (for HTMX re-rendering)
+  fastify.get('/run/:id/detail-fragment', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const filePath = path.join(runsDir, `${id}.json`);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      
+      // Load program details
+      const programs = await loadPrograms();
+      const program = programs.find(p => p.id === run.programId);
+      
+      return reply.view('_run-detail.njk', { 
+        run: { ...run, id, program } 
+      });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(404).send('Run not found');
+    }
+  });
+
   // Start Run Handler
   fastify.post('/start-run', async (request, reply) => {
     const { name, programId, songIds, songStatuses, songTitles, songArtists, songDurations, songBpms } = request.body as { 
@@ -254,6 +276,11 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const run = JSON.parse(content) as Run;
+      
+      if (run.status === 'completed' || run.status === 'failed') {
+          reply.header('HX-Trigger', 'runStatusFinalized');
+      }
+
       return reply.view('_run-status.njk', { run: { ...run, id } });
     } catch (err) {
       fastify.log.error(err);
