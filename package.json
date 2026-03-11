@@ -30,6 +30,7 @@
     "subsonic-api": "^3.2.0"
   },
   "devDependencies": {
+    "@types/cache-manager-fs-hash": "^0.0.5",
     "@types/cache-manager": "^4.0.6",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/jest": "^30.0.0",

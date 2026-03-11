@@ -9,7 +9,7 @@ const memoryCache = createCache({
 });
 
 // Disk cache for images
-let diskCache: any;
+let diskCache: any = null;
 
 function getDiskCache() {
   if (!diskCache) {
@@ -17,14 +17,10 @@ function getDiskCache() {
       path: 'data/cache',
       ttl: 3600 * 24 * 7,
       maxsize: 1000 * 1000 * 1000,
+      store: fsStore,
     };
-    
-    const actualFsStore = (fsStore as any).default || fsStore;
-    const store = (typeof actualFsStore.create === 'function') 
-      ? actualFsStore.create(options) 
-      : actualFsStore(options);
 
-    diskCache = createCache(store);
+    diskCache = createCache(options);
   }
   return diskCache;
 }
