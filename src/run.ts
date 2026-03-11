@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
-import { Program, Run, RunStatus } from './types.js';
+import { IntervalType, Program, Run, RunStatus } from './types.js';
 import { processRun } from './processor.js';
 import { loadPrograms, saveProgram } from './programs.js';
 
@@ -67,7 +67,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     };
 
     const intervals = types.map((type, index) => ({
-      type: type as 'warmup' | 'run' | 'walk' | 'cooldown',
+      type: type as IntervalType,
       duration: parseInt(durations[index]),
     }));
 

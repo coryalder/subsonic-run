@@ -1,5 +1,12 @@
+export enum IntervalType {
+  WARMUP = 'warmup',
+  RUN = 'run',
+  WALK = 'walk',
+  COOLDOWN = 'cooldown',
+}
+
 export interface Interval {
-  type: 'warmup' | 'run' | 'walk' | 'cooldown';
+  type: IntervalType;
   duration: number; // in seconds
 }
 
