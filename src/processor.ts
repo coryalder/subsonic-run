@@ -18,7 +18,7 @@ async function getSongDuration(filePath: string): Promise<number> {
 }
 
 export async function processRun(runId: string, subsonic: SubsonicAPI) {
-  const dataDir = path.join(process.cwd(), 'data');
+  const dataDir = path.join(process.cwd(), 'data', 'runs');
   const runFilePath = path.join(dataDir, `${runId}.json`);
 
   const updateStatus = async (status: Run['status'], outputPath?: string) => {
@@ -90,12 +90,16 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     let fastSongIndex = 0;
     let slowSongPosition = 0;
     let fastSongPosition = 0;
-    const clips: string[] = [];
+    interface ClipInfo { path: string; duration: number; isIntervalStart: boolean; }
+    const clips: ClipInfo[] = [];
     let clipIndex = 0;
+
+    let isFirstInterval = true;
 
     for (const interval of run.program.intervals) {
       const isSlow = IntervalTypeIsSlow(interval.type);
         let remainingIntervalDuration = interval.duration;
+        let isFirstClipOfInterval = true;
         
         while (remainingIntervalDuration > 0) {
             let currentSong;
@@ -137,7 +141,12 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
                     .on('error', (err) => reject(err))
                     .run();
             });
-            clips.push(clipPath);
+            clips.push({
+                path: clipPath,
+                duration: clipDuration,
+                isIntervalStart: isFirstClipOfInterval && !isFirstInterval
+            });
+            isFirstClipOfInterval = false;
 
             remainingIntervalDuration -= clipDuration;
 
@@ -155,29 +164,57 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
                 }
             }
         }
+        isFirstInterval = false;
     }
     
     if (clips.length > 0) {
         if (clips.length === 1) {
-            await fs.rename(clips[0], finalOutputPath);
+            await fs.rename(clips[0].path, finalOutputPath);
         } else {
             const crossfadeDuration = 2;
-            let complexFilter = '';
+            const complexFilters: string[] = [];
             let prevOutput = '0:a';
+            
+            let currentStitchedTime = clips[0].duration;
+            const transitionDelays: number[] = [];
 
             for (let i = 1; i < clips.length; i++) {
                 const currentInput = `${i}:a`;
                 const nextOutput = `a${i}`;
-                complexFilter += `[${prevOutput}][${currentInput}]acrossfade=d=${crossfadeDuration}[${nextOutput}];`;
+                complexFilters.push(`[${prevOutput}][${currentInput}]acrossfade=d=${crossfadeDuration}[${nextOutput}]`);
                 prevOutput = nextOutput;
+                
+                if (clips[i].isIntervalStart) {
+                    const transitionTime = currentStitchedTime - crossfadeDuration;
+                    transitionDelays.push(transitionTime);
+                }
+                currentStitchedTime += clips[i].duration - crossfadeDuration;
             }
 
             const command = ffmpeg();
-            clips.forEach(clip => command.input(clip));
+            clips.forEach(clip => command.input(clip.path));
+
+            if (transitionDelays.length > 0) {
+                const baseTransitionInputIndex = clips.length;
+                const delayedOutputs: string[] = [];
+                for (let i = 0; i < transitionDelays.length; i++) {
+                    command.input(path.join(process.cwd(), 'transition.mp3'));
+                    const delayMs = Math.round(transitionDelays[i] * 1000);
+                    const delayedOutput = `delayed_t${i}`;
+                    complexFilters.push(`[${baseTransitionInputIndex + i}:a]adelay=delays=${delayMs}:all=1[${delayedOutput}]`);
+                    delayedOutputs.push(`[${delayedOutput}]`);
+                }
+                
+                const amixInputs = `[${prevOutput}]` + delayedOutputs.join('');
+                const numInputs = 1 + transitionDelays.length;
+                const finalMixOutput = `final_mix`;
+                complexFilters.push(`${amixInputs}amix=inputs=${numInputs}:duration=first:dropout_transition=0:normalize=0[${finalMixOutput}]`);
+                prevOutput = finalMixOutput;
+            }
 
             await new Promise<void>((resolve, reject) => {
                 command
-                    .complexFilter(complexFilter, prevOutput)
+                    .complexFilter(complexFilters.join(';'), prevOutput)
                     .save(finalOutputPath)
                     .on('end', () => resolve())
                     .on('error', (err) => reject(err));
@@ -185,7 +222,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
         }
 
         for (const clip of clips) {
-            await fs.unlink(clip);
+            await fs.unlink(clip.path);
         }
     }
     

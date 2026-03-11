@@ -11,7 +11,6 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
 
   const dataDir = path.join(process.cwd(), 'data');
   const runsDir = path.join(dataDir, 'runs');
-  const programsDir = path.join(dataDir, 'programs');
 
   // Create Run Page
   fastify.get('/create-run', async (request, reply) => {
@@ -211,8 +210,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       return reply.status(500).send({ error: 'Server configuration error: MUSIC_LIBRARY_PATH not set' });
     }
 
-    const dataDir = path.join(process.cwd(), 'data');
-    const runFilePath = path.join(dataDir, `${id}.json`);
+    const runFilePath = path.join(runsDir, `${id}.json`);
     const sourceFilePath = path.join(process.cwd(), 'output', `${id}.mp3`);
 
     try {
@@ -251,8 +249,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   // Run Status fragment (for HTMX refresh)
   fastify.get('/run/:id/status', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, `${id}.json`);
+    const filePath = path.join(runsDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -268,8 +265,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   fastify.post('/run/:id/update-title', async (request, reply) => {
     const { id } = request.params as { id: string };
     const { name } = request.body as { name?: string };
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, `${id}.json`);
+    const filePath = path.join(runsDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -296,8 +292,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   fastify.post('/run/:id/reorder-songs', async (request, reply) => {
     const { id } = request.params as { id: string };
     const { direction, index } = request.body as { direction: 'up' | 'down', index: number };
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, `${id}.json`);
+    const filePath = path.join(runsDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -346,8 +341,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   fastify.post('/run/:id/toggle-song-status', async (request, reply) => {
     const { id } = request.params as { id: string };
     const { index } = request.body as { index: number };
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, `${id}.json`);
+    const filePath = path.join(runsDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -375,8 +369,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   fastify.post('/run/:id/swap-song', async (request, reply) => {
     const { id } = request.params as { id: string };
     const { index, song: songStr } = request.body as { index: string, song: string };
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, `${id}.json`);
+    const filePath = path.join(runsDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
