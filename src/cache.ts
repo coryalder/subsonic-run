@@ -14,7 +14,7 @@ let diskCache: any;
 function getDiskCache() {
   if (!diskCache) {
     const options = {
-      path: 'cache',
+      path: 'data/cache',
       ttl: 3600 * 24 * 7,
       maxsize: 1000 * 1000 * 1000,
     };
