@@ -1,7 +1,7 @@
 import { FastifyRequest } from 'fastify';
 
 // extracts pagination parameters from the request, and calculates next/prev offsets
-export function paginateNoData<T>(request: FastifyRequest) {
+export function paginateNoData(request: FastifyRequest) {
   const { offset = 0, size = 12 } = request.query as { offset?: number, size?: number };
 
   const offsetNum = Number(offset);
