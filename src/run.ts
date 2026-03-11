@@ -65,13 +65,16 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       name: string;
       difficulty: string;
       description: string;
-      types: string[];
-      durations: string[];
+      types: string | string[];
+      durations: string | string[];
     };
 
-    const intervals = types.map((type, index) => ({
+    const typesArray = Array.isArray(types) ? types : (types ? [types] : []);
+    const durationsArray = Array.isArray(durations) ? durations : (durations ? [durations] : []);
+
+    const intervals = typesArray.map((type, index) => ({
       type: type as IntervalType,
-      duration: parseInt(durations[index]),
+      duration: parseInt(durationsArray[index]),
     }));
 
     const newProgram: Omit<Program, 'slowDuration' | 'fastDuration'> = {

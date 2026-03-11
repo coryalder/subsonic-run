@@ -47,7 +47,7 @@
                     <!-- Interval rows will be added here -->
                     <div class="interval-row" style="display: grid; grid-template-columns: 2fr 2fr 40px; gap: 1rem; align-items: center; background: #f9f9f9; padding: 1rem; border-radius: 8px; border: 1px solid #eee;">
                         <div>
-                            <select name="types[]" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ddd;">
+                            <select name="types" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ddd;">
                                 <option value="warmup">Warmup</option>
                                 <option value="run">Run (Fast)</option>
                                 <option value="walk">Walk (Slow)</option>
@@ -56,7 +56,7 @@
                         </div>
                         <div>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="number" name="durations[]" placeholder="Seconds" required min="1"
+                                <input type="number" name="durations" placeholder="Seconds" required min="1"
                                        style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ddd;">
                                 <span style="font-size: 0.8rem; color: #666;">sec</span>
                             </div>
@@ -86,7 +86,7 @@
         newRow.style = 'display: grid; grid-template-columns: 2fr 2fr 40px; gap: 1rem; align-items: center; background: #f9f9f9; padding: 1rem; border-radius: 8px; border: 1px solid #eee;';
         newRow.innerHTML = `
             <div>
-                <select name="types[]" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ddd;">
+                <select name="types" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ddd;">
                     <option value="warmup">Warmup</option>
                     <option value="run">Run (Fast)</option>
                     <option value="walk">Walk (Slow)</option>
@@ -95,7 +95,7 @@
             </div>
             <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="number" name="durations[]" placeholder="Seconds" required min="1"
+                    <input type="number" name="durations" placeholder="Seconds" required min="1"
                            style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ddd;">
                     <span style="font-size: 0.8rem; color: #666;">sec</span>
                 </div>

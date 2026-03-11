@@ -25,47 +25,22 @@ function _calculateDurations(program: Omit<Program, 'slowDuration' | 'fastDurati
   };
 }
 
-/**
- * Checks if any program JSON files exist in the data directory.
- */
-async function programExistsInDataDir(): Promise<boolean> {
-  try {
-    await fs.mkdir(PROGRAMS_DIR, { recursive: true });
-    const files = await fs.readdir(PROGRAMS_DIR);
-    return files.some(f => f.startsWith('program-') && f.endsWith('.json'));
-  } catch (error) {
-    console.error('Error checking data directory for programs:', error);
-    return false;
-  }
-}
-
-export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'> | Program): Promise<void> {
-  await fs.mkdir(PROGRAMS_DIR, { recursive: true });
-  
-  const programWithDurations = ('slowDuration' in program && 'fastDuration' in program) 
-    ? program 
-    : _calculateDurations(program);
-
-  const filePath = path.join(PROGRAMS_DIR, `program-${programWithDurations.id}.json`);
-  await fs.writeFile(filePath, JSON.stringify(programWithDurations, null, 2));
-}
-
 export async function loadPrograms(): Promise<Program[]> {
   await fs.mkdir(PROGRAMS_DIR, { recursive: true });
   let programs: Program[] = [];
 
-  if (await programExistsInDataDir()) {
-    // Load from JSON files in data directory
-    const files = await fs.readdir(PROGRAMS_DIR);
-    const programFiles = files.filter(f => f.startsWith('program-') && f.endsWith('.json'));
+  // Load from JSON files in data directory
+  const files = await fs.readdir(PROGRAMS_DIR);
+  const programFiles = files.filter(f => f.startsWith('program-') && f.endsWith('.json'));
 
-    const programPromises = programFiles.map(async (file) => {
-      const content = await fs.readFile(path.join(PROGRAMS_DIR, file), 'utf-8');
-      const programData = JSON.parse(content) as Program;
-      return _calculateDurations(programData); // Recalculate for robustness
-    });
-    programs = await Promise.all(programPromises);
-  } else {
+  const programPromises = programFiles.map(async (file) => {
+    const content = await fs.readFile(path.join(PROGRAMS_DIR, file), 'utf-8');
+    const programData = JSON.parse(content) as Program;
+    return _calculateDurations(programData); // Recalculate for robustness
+  });
+  programs = await Promise.all(programPromises);
+
+  if (programs.length === 0) {
     // Populate from programs.yaml if no programs found in data directory
     try {
       console.log("copying programs from programs.yaml to data directory...");
@@ -91,4 +66,11 @@ export async function loadPrograms(): Promise<Program[]> {
   // Sort programs by name for consistent display
   programs.sort((a, b) => a.name.localeCompare(b.name));
   return programs;
+}
+
+export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'> | Program): Promise<void> {
+  await fs.mkdir(PROGRAMS_DIR, { recursive: true });
+  const file = path.join(PROGRAMS_DIR, 'program-' + program.id + '.json');
+  const content = JSON.stringify(program, null, 2);
+  await fs.writeFile(file, content);
 }
