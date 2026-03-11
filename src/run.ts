@@ -16,7 +16,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   });
 
   // View Runs Page
-  fastify.get('/runs', async (request, reply) => {
+  const viewRunsHandler = async (request: any, reply: any) => {
     const dataDir = path.join(process.cwd(), 'data');
     let runs: Run[] = [];
     
@@ -39,7 +39,10 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     }
     
     return reply.view('runs.njk', { runs });
-  });
+  };
+
+  fastify.get('/', viewRunsHandler);
+  fastify.get('/runs', viewRunsHandler);
 
   // Run Details Page
   fastify.get('/run/:id', async (request, reply) => {

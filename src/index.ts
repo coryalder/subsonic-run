@@ -88,8 +88,8 @@ fastify.register(musicRoutes, { subsonic });
 // Register Run Routes
 fastify.register(runRoutes, { subsonic });
 
-// Basic route
-fastify.get('/', async (request, reply) => {
+// Explorer route
+fastify.get('/explorer', async (request, reply) => {
   let status = 'Connecting...';
   let connected = false;
   try {
