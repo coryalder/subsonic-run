@@ -1,0 +1,55 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="color: #333; margin: 0;">Run Programs</h1>
+    </div>
+
+    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        {% for program in programs %}
+            <div class="card" style="text-align: left; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #eee; border-radius: 12px; background: white;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div style="font-weight: bold; font-size: 1.2rem; color: #1db954;">{{ program.name }}</div>
+                    <div style="font-size: 0.8rem; background: #f0f0f0; padding: 4px 8px; border-radius: 12px; color: #555; font-weight: bold;">
+                        Difficulty: {{ program.difficulty }}/5
+                    </div>
+                </div>
+                
+                <div style="font-size: 0.95rem; line-height: 1.5; color: #444; margin-bottom: 1.5rem; min-height: 60px;">
+                    {{ program.description }}
+                </div>
+                
+                <div style="border-top: 1px solid #eee; padding-top: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">
+                        <span><strong>{{ program.intervals | length }}</strong> intervals</span>
+                        <span style="font-weight: bold;">Total: {{ (program.slowDuration + program.fastDuration) | formatDuration }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #888;">
+                        <span>Slow: {{ program.slowDuration | formatDuration }}</span>
+                        <span>Fast: {{ program.fastDuration | formatDuration }}</span>
+                    </div>
+                </div>
+
+                <div style="height: 12px; border-radius: 6px; overflow: hidden; display: flex; background: #eee; margin-bottom: 1rem;">
+                    {% set totalDuration = program.slowDuration + program.fastDuration %}
+                    {% for interval in program.intervals %}
+                        <div style="width: {{ (interval.duration / totalDuration) * 100 }}%; 
+                                    background: {% if interval.type == 'run' %}#e74c3c{% elif interval.type == 'walk' %}#3498db{% elif interval.type == 'warmup' or interval.type == 'cooldown' %}#95a5a6{% else %}#ddd{% endif %};
+                                    height: 100%; border-right: 1px solid rgba(255,255,255,0.2);"
+                             title="{{ interval.type | capitalize }}: {{ interval.duration | formatDuration }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if programs.length == 0 %}
+        <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px; border: 1px dashed #ddd; color: #666;">
+            <h3 style="margin-top: 0;">No Programs Found</h3>
+            <p>It looks like there are no run programs available. Check your programs.yaml file.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@ refresh anymore - can we add that logic.
 - [x] We should be able to edit the run. Specifically, we should be able to change the title, and move songs around (up and down, and change their status from slow to fast). Changes should auto-save.
 - [x] It would also be great to have a way to replace a song with another one. This should re-use the song-picker ui, but only be visible when we are swapping out a song.
 - [x] Move the index page to a new page called "explorer", and make the run-details page the default.
-- [ ] Make a page to view all the run programs.
+- [x] Make a page to view all the run programs.
 - [ ] Make a new page to let the user create a new run program.
 - [ ] build a test suite
   - [ ] setup set infrastructure

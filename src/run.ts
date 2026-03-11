@@ -44,6 +44,12 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   fastify.get('/', viewRunsHandler);
   fastify.get('/runs', viewRunsHandler);
 
+  // Run Programs Page
+  fastify.get('/programs', async (request, reply) => {
+    const programs = await loadPrograms();
+    return reply.view('programs.njk', { programs });
+  });
+
   // Run Details Page
   fastify.get('/run/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
