@@ -8,22 +8,15 @@ const memoryCache = createCache({
   ttl: 600 * 1000, // 10 minutes (cache-manager uses milliseconds for default store)
 });
 
-// Disk cache for images
-let diskCache: any = null;
-
-function getDiskCache() {
-  if (!diskCache) {
-    const options = {
-      path: 'data/cache',
-      ttl: 3600 * 24 * 7,
-      maxsize: 1000 * 1000 * 1000,
-      store: fsStore,
-    };
-
-    diskCache = createCache(options);
-  }
-  return diskCache;
+let diskCacheOptions = {
+  path: 'data/cache',
+  ttl: 3600 * 24 * 7,
+  maxsize: 1000 * 1000 * 1000,
+  store: fsStore,
 }
+
+const diskCache = createCache(diskCacheOptions);
+
 
 export async function getCached<T>(key: string, fetcher: () => Promise<T>, ttl?: number): Promise<T> {
   const cached = await memoryCache.get(key);
@@ -38,14 +31,13 @@ export async function getCached<T>(key: string, fetcher: () => Promise<T>, ttl?:
 }
 
 export async function getCachedDisk<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
-  const store = getDiskCache();
-  const cached = await store.get(key);
+  const cached = await diskCache.get(key);
   if (cached !== undefined && cached !== null) {
     return cached as T;
   }
   const fresh = await fetcher();
   if (fresh !== null) {
-    await store.set(key, fresh);
+    await diskCache.set(key, fresh);
   }
   return fresh;
 }

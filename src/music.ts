@@ -1,13 +1,30 @@
 import { FastifyInstance } from 'fastify';
 import SubsonicAPI from 'subsonic-api';
 import { getCached, getCachedDisk } from './cache.js';
+import { paginateNoData, paginateWithData } from './utils.js';
 
-export default async function musicRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
+export async function subSonicPing(subsonic: SubsonicAPI) {
+  let status = 'Connecting...';
+  let connected = false;
+  try {
+    const response = await subsonic.ping();
+    if (response.status === 'ok') {
+      status = `Connected to Subsonic (${process.env.SUBSONIC_URL})`;
+      connected = true;
+    } else {
+      status = `Error: ${response.status}`;
+    }
+  } catch (err) {
+    status = 'Connection failed';
+  }
+  return { status, connected };
+}
+
+export async function musicRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
 
   // Artists fragment
   fastify.get('/artists', async (request, reply) => {
-    const { offset = 0, size = 12 } = request.query as { offset?: number, size?: number };
     
     const artists = await getCached('all_artists', async () => {
       const response = await subsonic.getArtists();
@@ -17,14 +34,16 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
       return [];
     });
     
-    const paginatedArtists = artists.slice(Number(offset), Number(offset) + Number(size));
-    const nextOffset = Number(offset) + Number(size);
-    const prevOffset = Math.max(0, Number(offset) - Number(size));
-    const hasMore = nextOffset < artists.length;
-    const hasPrev = Number(offset) > 0;
+    let {
+      paginatedData,
+      nextOffset,
+      prevOffset,
+      hasMore,
+      hasPrev
+    } = paginateWithData(request, artists);
 
     return reply.view('artists.njk', { 
-      artists: paginatedArtists, 
+      artists: paginatedData, 
       nextOffset, 
       prevOffset,
       hasMore, 
@@ -48,19 +67,17 @@ export default async function musicRoutes(fastify: FastifyInstance, options: { s
 
   // Albums list (general)
   fastify.get('/albums', async (request, reply) => {
-    const { offset = 0, size = 12 } = request.query as { offset?: number, size?: number };
+    let { offset, size, nextOffset, prevOffset, hasPrev } = paginateNoData(request);
+
     const response = await getCached(`album_list_${offset}_${size}`, () => 
-      subsonic.getAlbumList({ type: 'newest', size: Number(size), offset: Number(offset) })
+      subsonic.getAlbumList({ type: 'newest', size: size, offset: offset })
     );
     let albums: any[] = [];
     if (response.status === 'ok' && response.albumList?.album) {
       albums = response.albumList.album;
     }
 
-    const nextOffset = Number(offset) + Number(size);
-    const prevOffset = Math.max(0, Number(offset) - Number(size));
-    const hasMore = albums.length === Number(size);
-    const hasPrev = Number(offset) > 0;
+    let hasMore = albums.length === size; // If we got a full page, there might be more
 
     return reply.view('albums.njk', { 
       albums, 

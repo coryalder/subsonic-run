@@ -8,8 +8,9 @@ import nunjucks from 'nunjucks';
 import fastifyStatic from '@fastify/static';
 import formbody from '@fastify/formbody';
 import 'dotenv/config';
-import musicRoutes from './music.js';
+import { musicRoutes, subSonicPing} from './music.js';
 import runRoutes from './run.js';
+import { AddCustomFilters } from './filters.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,31 +54,7 @@ fastify.register(view, {
     nunjucks: nunjucks
   },
   options: {
-    onConfigure: (env: nunjucks.Environment) => {
-      env.addFilter('formatDuration', (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-      });
-      env.addFilter('date', (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleString();
-      });
-      env.addFilter('filterByStatus', (songs: any[], status: string) => {
-        return (songs || []).filter(s => s.status === status);
-      });
-      env.addFilter('sumDurations', (songs: any[]) => {
-        return (songs || []).reduce((sum, s) => sum + (s.duration || 0), 0);
-      });
-      env.addFilter('sumIntervals', (intervals: any[]) => {
-        return (intervals || []).reduce((sum, i) => sum + (i.duration || 0), 0);
-      });
-      env.addFilter('isModified', (run: any) => {
-        if (run.status !== 'completed' || !run.updatedAt) return false;
-        const stitchTime = run.stitchedAt ? new Date(run.stitchedAt).getTime() : 0;
-        return new Date(run.updatedAt).getTime() > stitchTime;
-      });
-    }
+    onConfigure: AddCustomFilters
   },
   root: path.join(__dirname, 'views')
 });
@@ -90,25 +67,8 @@ fastify.register(runRoutes, { subsonic });
 
 // Explorer route
 fastify.get('/explorer', async (request, reply) => {
-  let status = 'Connecting...';
-  let connected = false;
-  try {
-    const response = await subsonic.ping();
-    if (response.status === 'ok') {
-      status = `Connected to Subsonic (${process.env.SUBSONIC_URL})`;
-      connected = true;
-    } else {
-      status = `Error: ${response.status}`;
-    }
-  } catch (err) {
-    status = 'Connection failed';
-  }
+  let { status, connected } = await subSonicPing(subsonic);
   return reply.view('index.njk', { status, connected });
-});
-
-// HTMX route
-fastify.get('/clicked', async (request, reply) => {
-  return '<p>HTMX content loaded successfully!</p>';
 });
 
 const start = async () => {
