@@ -307,7 +307,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       const programs = await loadPrograms();
       run.program = programs.find(p => p.id === run.programId);
 
-      const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
+      const template = request.headers['hx-request'] ? '' : 'run-detail.njk';
       return reply.view(template, { run: { ...run, id } });
     } catch (err) {
       fastify.log.error(err);
