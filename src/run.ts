@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
-import { Program, Run } from './types.js';
+import { Program, Run, RunStatus } from './types.js';
 import { processRun } from './processor.js';
 import { loadPrograms, saveProgram } from './programs.js';
 
@@ -148,7 +148,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       startTime: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       songs,
-      status: 'pending'
+      status: RunStatus.PENDING
     };
 
     const dataDir = path.join(process.cwd(), 'data');
@@ -184,7 +184,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       const content = await fs.readFile(filePath, 'utf-8');
       const run = JSON.parse(content) as Run;
       
-      run.status = 'pending';
+      run.status = RunStatus.PENDING;
       await fs.writeFile(filePath, JSON.stringify(run, null, 2));
 
       // Trigger background processing (no await)
@@ -219,7 +219,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       const content = await fs.readFile(runFilePath, 'utf-8');
       const run = JSON.parse(content) as Run;
 
-      if (run.status !== 'completed' || !run.outputPath) {
+      if (run.status !== RunStatus.COMPLETED || !run.outputPath) {
         return reply.status(400).send({ error: 'Run is not completed yet' });
       }
 

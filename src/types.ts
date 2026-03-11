@@ -13,6 +13,14 @@ export interface Program {
   fastDuration: number;
 }
 
+export enum RunStatus {
+  PENDING = 'pending',
+  DOWNLOADING = 'downloading',
+  STITCHING = 'stitching',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}
+
 export interface Run {
   id?: string;
   name: string;
@@ -27,7 +35,7 @@ export interface Run {
     duration?: number,
     bpm?: number
   }[];
-  status: 'pending' | 'downloading' | 'stitching' | 'completed' | 'failed';
+  status: RunStatus;
   outputPath?: string;
   updatedAt?: string;
   stitchedAt?: string;

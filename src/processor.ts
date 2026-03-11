@@ -2,7 +2,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
-import { Run } from './types.js';
+import { Run, RunStatus } from './types.js';
 import { loadPrograms } from './programs.js';
 
 async function getSongDuration(filePath: string): Promise<number> {
@@ -39,12 +39,12 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     run.program = programs.find(p => p.id === run.programId);
 
     if (!run.songs || run.songs.length === 0) {
-      await updateStatus('completed');
+      await updateStatus(RunStatus.COMPLETED);
       return;
     }
 
     // 1. Downloading phase
-    await updateStatus('downloading');
+    await updateStatus(RunStatus.DOWNLOADING);
     const tempDir = path.join(process.cwd(), 'temp', runId);
     await fs.mkdir(tempDir, { recursive: true });
 
@@ -72,14 +72,14 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     }
 
     // 2. Stitching phase
-    await updateStatus('stitching');
+    await updateStatus(RunStatus.STITCHING);
     
     const finalOutputPath = path.join(process.cwd(), 'output', `${runId}.mp3`);
     await fs.mkdir(path.dirname(finalOutputPath), { recursive: true });
 
     if (!run.program || !run.songs || run.songs.length === 0) {
         console.log('No program or songs to stitch. ' + JSON.stringify(run, null, 2));
-        await updateStatus('completed');
+        await updateStatus(RunStatus.COMPLETED);
         return;
     }
 
@@ -187,13 +187,13 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     }
     
     // 3. Completion
-    await updateStatus('completed', finalOutputPath);
+    await updateStatus(RunStatus.COMPLETED, finalOutputPath);
     
     // Clean up temp files
     //await fs.rm(tempDir, { recursive: true, force: true });
 
   } catch (err) {
     console.error(`Error processing run ${runId}:`, err);
-    await updateStatus('failed');
+    await updateStatus(RunStatus.FAILED);
   }
 }
