@@ -20,7 +20,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   });
 
   // View Runs Page
-  const viewRunsHandler = async (request: any, reply: any) => {
+  fastify.get('/', async (request: any, reply: any) => {
     let runs: Run[] = [];
     
     try {
@@ -42,10 +42,7 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     }
     
     return reply.view('runs.njk', { runs });
-  };
-
-  fastify.get('/', viewRunsHandler);
-  fastify.get('/runs', viewRunsHandler);
+  });
 
   // Run Programs Page
   fastify.get('/programs', async (request, reply) => {
