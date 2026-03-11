@@ -131,6 +131,14 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     const { id } = request.params as { id: string };
 
     try {
+      const dataDir = path.join(process.cwd(), 'data');
+      const filePath = path.join(dataDir, `${id}.json`);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const run = JSON.parse(content) as Run;
+      
+      run.status = 'pending';
+      await fs.writeFile(filePath, JSON.stringify(run, null, 2));
+
       // Trigger background processing (no await)
       processRun(id, subsonic).catch(err => {
         fastify.log.error(`Background processing failed for ${id}:`, err);
@@ -211,17 +219,25 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
   // Update Run Title
   fastify.post('/run/:id/update-title', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const { name } = request.body as { name: string };
+    const { name } = request.body as { name?: string };
     const dataDir = path.join(process.cwd(), 'data');
     const filePath = path.join(dataDir, `${id}.json`);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const run = JSON.parse(content) as Run;
-      run.name = name;
-      run.updatedAt = new Date().toISOString();
-      await fs.writeFile(filePath, JSON.stringify(run, null, 2));
-      return reply.status(204).send();
+      
+      if (name !== undefined && name.trim() !== '') {
+        run.name = name.trim();
+        run.updatedAt = new Date().toISOString();
+        await fs.writeFile(filePath, JSON.stringify(run, null, 2));
+      }
+
+      const programs = await loadPrograms();
+      run.program = programs.find(p => p.id === run.programId);
+
+      const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
+      return reply.view(template, { run: { ...run, id } });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send('Error updating title');
@@ -268,10 +284,10 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       await fs.writeFile(filePath, JSON.stringify(run, null, 2));
       
       const programs = await loadPrograms();
-      const program = programs.find(p => p.id === run.programId);
+      run.program = programs.find(p => p.id === run.programId);
       
       const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
-      return reply.view(template, { run: { ...run, id, program }, currentView: 'runs' });
+      return reply.view(template, { run: { ...run, id } });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send('Error reordering songs');
@@ -297,10 +313,10 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
       await fs.writeFile(filePath, JSON.stringify(run, null, 2));
       
       const programs = await loadPrograms();
-      const program = programs.find(p => p.id === run.programId);
+      run.program = programs.find(p => p.id === run.programId);
       
       const template = request.headers['hx-request'] ? '_run-detail.njk' : 'run-detail.njk';
-      return reply.view(template, { run: { ...run, id, program }, currentView: 'runs' });
+      return reply.view(template, { run: { ...run, id } });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send('Error toggling song status');

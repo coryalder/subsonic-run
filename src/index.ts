@@ -73,8 +73,9 @@ fastify.register(view, {
         return (intervals || []).reduce((sum, i) => sum + (i.duration || 0), 0);
       });
       env.addFilter('isModified', (run: any) => {
-        if (run.status !== 'completed' || !run.stitchedAt || !run.updatedAt) return false;
-        return new Date(run.updatedAt) > new Date(run.stitchedAt);
+        if (run.status !== 'completed' || !run.updatedAt) return false;
+        const stitchTime = run.stitchedAt ? new Date(run.stitchedAt).getTime() : 0;
+        return new Date(run.updatedAt).getTime() > stitchTime;
       });
     }
   },
