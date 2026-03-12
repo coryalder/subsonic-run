@@ -198,7 +198,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
                 const baseTransitionInputIndex = clips.length;
                 const delayedOutputs: string[] = [];
                 for (let i = 0; i < transitionDelays.length; i++) {
-                    command.input(path.join(process.cwd(), 'transition.mp3'));
+                    command.input(path.join(process.cwd(), 'assets', 'transition.mp3'));
                     const delayMs = Math.round(transitionDelays[i] * 1000);
                     const delayedOutput = `delayed_t${i}`;
                     complexFilters.push(`[${baseTransitionInputIndex + i}:a]adelay=delays=${delayMs}:all=1[${delayedOutput}]`);
