@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Subsonic Run</title>
+    <link>{{ baseUrl }}/</link>
+    <description>Your personalized stitched running programs from Subsonic Run.</description>
+    <language>en-us</language>
+    <itunes:explicit>no</itunes:explicit>
+    {% for run in runs %}
+    <item>
+      <title>{{ run.name }}</title>
+      <link>{{ baseUrl }}/run/{{ run.id }}</link>
+      <guid isPermaLink="false">{{ run.id }}</guid>
+      <pubDate>{{ run.updatedAt | default(run.startTime) | rfc822Date }}</pubDate>
+      <description><![CDATA[
+        <p><strong>Program:</strong> {{ run.program.name | default('Custom Program') }}</p>
+        <p>This run contains stitched audio for your training program.</p>
+        {% if run.songs and run.songs.length > 0 %}
+        <p><strong>Tracks:</strong></p>
+        <ul>
+        {% for song in run.songs %}
+          <li>{{ song.title }} by {{ song.artist }} ({{ song.status }})</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+      ]]></description>
+      <enclosure url="{{ baseUrl }}/output/{{ run.id }}.mp3" type="audio/mpeg" length="{{ run.fileSize | default(0) }}" />
+    </item>
+    {% endfor %}
+  </channel>
+</rss>

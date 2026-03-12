@@ -1,6 +1,7 @@
 import { 
   formatDuration, 
   formatDate, 
+  formatRfc822Date,
   filterByStatus, 
   sumDurations, 
   sumIntervals, 
@@ -30,6 +31,14 @@ describe('filters', () => {
       // part of a date (using a regex that matches common date formats).
       // Or simply verify it doesn't throw and returns the same output as a raw Date.
       expect(result).toBe(new Date(dateStr).toLocaleString());
+    });
+  });
+
+  describe('formatRfc822Date', () => {
+    it('should correctly call toUTCString for podcast compatibility', () => {
+      const dateStr = '2026-03-12T10:00:00Z';
+      const result = formatRfc822Date(dateStr);
+      expect(result).toBe(new Date(dateStr).toUTCString());
     });
   });
 

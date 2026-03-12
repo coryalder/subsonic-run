@@ -4,7 +4,10 @@
 <div class="picker-widget" style="max-width: 900px; margin: 0 auto;">
     <div class="picker-header">
         <h2>Saved Runs</h2>
-        <a href="/create-run" style="font-size: 0.9rem; color: #1db954; font-weight: bold; text-decoration: none;">+ New Run</a>
+        <div style="display: flex; gap: 1rem;">
+            <a href="/rss" style="font-size: 0.9rem; color: #f26522; font-weight: bold; text-decoration: none;">RSS Feed</a>
+            <a href="/create-run" style="font-size: 0.9rem; color: #1db954; font-weight: bold; text-decoration: none;">+ New Run</a>
+        </div>
     </div>
     <div class="picker-content">
         {% if runs.length > 0 %}

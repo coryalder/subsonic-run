@@ -1,4 +1,3 @@
-
 import nunjucks from 'nunjucks';
 
 export function formatDuration(seconds: number): string {
@@ -10,6 +9,11 @@ export function formatDuration(seconds: number): string {
 export function formatDate(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toLocaleString();
+}
+
+export function formatRfc822Date(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toUTCString();
 }
 
 export function filterByStatus(songs: any[], status: string): any[] {
@@ -33,6 +37,7 @@ export function isModified(run: any): boolean {
 export const AddCustomFilters = (env: nunjucks.Environment) => {
     env.addFilter('formatDuration', formatDuration);
     env.addFilter('date', formatDate);
+    env.addFilter('rfc822Date', formatRfc822Date);
     env.addFilter('filterByStatus', filterByStatus);
     env.addFilter('sumDurations', sumDurations);
     env.addFilter('sumIntervals', sumIntervals);

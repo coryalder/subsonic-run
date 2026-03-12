@@ -43,6 +43,54 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     return reply.view('runs.njk', { runs });
   });
 
+  // Podcast RSS Feed
+  fastify.get('/rss', async (request, reply) => {
+    let runs: Run[] = [];
+    
+    try {
+      await fs.mkdir(runsDir, { recursive: true });
+      const files = await fs.readdir(runsDir);
+      const jsonFiles = files.filter(f => f.endsWith('.json') && f.startsWith('run-'));
+      
+      const programs = await loadPrograms();
+
+      const runPromises = jsonFiles.map(async (file) => {
+        const content = await fs.readFile(path.join(runsDir, file), 'utf-8');
+        const data = JSON.parse(content) as Run;
+        const program = programs.find(p => p.id === data.programId);
+        
+        let fileSize = 0;
+        if (data.status === RunStatus.COMPLETED) {
+            try {
+                const stat = await fs.stat(path.join(process.cwd(), 'output', `${file.replace('.json', '')}.mp3`));
+                fileSize = stat.size;
+            } catch (e) {
+                // File might be missing
+            }
+        }
+
+        return { ...data, id: file.replace('.json', ''), program, fileSize };
+      });
+      
+      runs = await Promise.all(runPromises);
+      
+      // Filter for only completed runs and sort by start time descending
+      runs = runs
+        .filter(r => r.status === RunStatus.COMPLETED)
+        .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+        
+    } catch (err) {
+      fastify.log.error(err);
+    }
+    
+    const host = request.hostname;
+    const protocol = request.protocol;
+    const baseUrl = `${protocol}://${host}`;
+
+    reply.type('application/rss+xml; charset=utf-8');
+    return reply.view('podcast.njk', { runs, baseUrl });
+  });
+
   // Run Details Page
   fastify.get('/run/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
