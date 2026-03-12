@@ -81,6 +81,16 @@ fastify.get('/explorer', async (request, reply) => {
   return reply.view('index.njk', { status, connected });
 });
 
+// About route
+fastify.get('/about', async (request, reply) => {
+  const config = {
+    musicLibraryPath: process.env.MUSIC_LIBRARY_PATH || 'Not set',
+    subsonicUrl: process.env.SUBSONIC_URL || 'Not set',
+    subsonicUser: process.env.SUBSONIC_USER || 'Not set',
+  };
+  return reply.view('about.njk', { config });
+});
+
 const start = async () => {
   try {
     await loadPrograms(); // Initial load to cache programs in memory

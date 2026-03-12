@@ -1,0 +1,42 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
+    <h1 style="margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 1rem;">About Subsonic Run</h1>
+    
+    <p style="font-size: 1.1rem; line-height: 1.6; color: #444; margin-bottom: 2rem;">
+        Subsonic Run is a tool designed to help you create custom running playlists using your Subsonic/Navidrome server. 
+        It allows you to build structured running "programs" with alternating intervals (like warmups, fast runs, slow walks, and cooldowns) 
+        and then matches songs from your library to fit those durations and desired paces. Finally, it stitches them together 
+        into a single, seamless audio file for your run.
+    </p>
+
+    <h2 style="margin-bottom: 1rem;">Current Configuration</h2>
+    
+    <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem;">
+        <div style="margin-bottom: 1rem;">
+            <div style="font-weight: bold; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Music Library Path</div>
+            <div style="font-family: monospace; font-size: 1.1rem; background: #fff; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                {{ config.musicLibraryPath }}
+            </div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">The local path where stitched runs are saved for Navidrome to scan.</div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <div style="font-weight: bold; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Subsonic URL</div>
+            <div style="font-family: monospace; font-size: 1.1rem; background: #fff; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                {{ config.subsonicUrl }}
+            </div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">The server address used to fetch music data.</div>
+        </div>
+
+        <div>
+            <div style="font-weight: bold; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Subsonic User</div>
+            <div style="font-family: monospace; font-size: 1.1rem; background: #fff; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                {{ config.subsonicUser }}
+            </div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">The authenticated user connected to the server.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
