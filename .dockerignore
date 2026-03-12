@@ -1,0 +1,8 @@
+node_modules
+data
+output
+dist
+.env
+.DS_Store
+tests
+coverage
