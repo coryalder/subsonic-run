@@ -11,7 +11,7 @@ const PROGRAMS_YAML_PATH = path.join(process.cwd(), 'programs.yaml');
  * Helper function to calculate slowDuration and fastDuration for a program.
  * It also ensures program.id is a string, as it might be missing or number from YAML.
  */
-function _calculateDurations(program: Omit<Program, 'slowDuration' | 'fastDuration'>): Program {
+export function _calculateDurations(program: Omit<Program, 'slowDuration' | 'fastDuration'>): Program {
   const slowDuration = program.intervals
     .filter(IntervalIsSlow)
     .reduce((sum, i) => sum + i.duration, 0);
@@ -53,6 +53,11 @@ async function initializePrograms() {
 }
 
 let cachedPrograms: Program[] | null = null;
+
+// For testing purposes
+export function _resetCache() {
+  cachedPrograms = null;
+}
 
 export async function loadPrograms(forceRefresh = false): Promise<Program[]> {
   if (cachedPrograms && !forceRefresh) {
