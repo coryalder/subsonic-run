@@ -37,7 +37,7 @@ async function initializePrograms() {
     if (programsFromYaml && programsFromYaml.length > 0) {
       for (const program of programsFromYaml) {
         const fullProgram = _calculateDurations(program);
-        await saveProgram(fullProgram); // Save to JSON file
+        await saveProgram(fullProgram, true); // Save to JSON file
         programs.push(fullProgram);
       }
     }
@@ -52,7 +52,13 @@ async function initializePrograms() {
   return programs;
 }
 
-export async function loadPrograms(): Promise<Program[]> {
+let cachedPrograms: Program[] | null = null;
+
+export async function loadPrograms(forceRefresh = false): Promise<Program[]> {
+  if (cachedPrograms && !forceRefresh) {
+    return cachedPrograms;
+  }
+
   await fs.mkdir(PROGRAMS_DIR, { recursive: true });
 
   // Load from JSON files in data directory
@@ -73,17 +79,22 @@ export async function loadPrograms(): Promise<Program[]> {
   
   // Sort programs by name for consistent display
   programs.sort((a, b) => a.name.localeCompare(b.name));
+  cachedPrograms = programs;
   return programs;
 }
 
-export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'> | Program): Promise<void> {
+export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastDuration'> | Program, skipReload = false): Promise<void> {
   await fs.mkdir(PROGRAMS_DIR, { recursive: true });
   const file = path.join(PROGRAMS_DIR, 'program-' + program.id + '.json');
   const content = JSON.stringify(program, null, 2);
   await fs.writeFile(file, content);
+
+  if (!skipReload) {
+    await loadPrograms(true);
+  }
 }
 
-export default async function programRoutes(fastify: FastifyInstance) {
+export async function programRoutes(fastify: FastifyInstance) {
   // Run Programs Page
   fastify.get('/programs', async (request, reply) => {
     const programs = await loadPrograms();

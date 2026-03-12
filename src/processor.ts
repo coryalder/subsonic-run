@@ -2,7 +2,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
-import { Run, RunStatus, IntervalType, IntervalTypeIsSlow } from './types.js';
+import { Run, RunStatus, IntervalTypeIsSlow } from './types.js';
 import { loadPrograms } from './programs.js';
 
 async function getSongDuration(filePath: string): Promise<number> {

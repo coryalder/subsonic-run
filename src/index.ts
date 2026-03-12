@@ -1,6 +1,5 @@
 import Fastify from 'fastify';
 import SubsonicAPI from 'subsonic-api';
-import * as av from 'node-av';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import view from '@fastify/view';
@@ -10,7 +9,7 @@ import formbody from '@fastify/formbody';
 import 'dotenv/config';
 import { musicRoutes, subSonicPing} from './music.js';
 import runRoutes from './run.js';
-import programRoutes from './programs.js';
+import { programRoutes, loadPrograms } from './programs.js';
 import { AddCustomFilters } from './filters.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -84,6 +83,7 @@ fastify.get('/explorer', async (request, reply) => {
 
 const start = async () => {
   try {
+    await loadPrograms(); // Initial load to cache programs in memory
     await fastify.listen({ port: 3000, host: '0.0.0.0' });
   } catch (err) {
     fastify.log.error(err);
