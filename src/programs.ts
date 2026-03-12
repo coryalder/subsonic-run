@@ -1,3 +1,4 @@
+import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import yaml from 'js-yaml';
@@ -80,4 +81,54 @@ export async function saveProgram(program: Omit<Program, 'slowDuration' | 'fastD
   const file = path.join(PROGRAMS_DIR, 'program-' + program.id + '.json');
   const content = JSON.stringify(program, null, 2);
   await fs.writeFile(file, content);
+}
+
+export default async function programRoutes(fastify: FastifyInstance) {
+  // Run Programs Page
+  fastify.get('/programs', async (request, reply) => {
+    const programs = await loadPrograms();
+    return reply.view('programs.njk', { programs });
+  });
+
+  // Create Program Page
+  fastify.get('/create-program', async (request, reply) => {
+    return reply.view('create-program.njk');
+  });
+
+  // Handle Create Program Submission
+  fastify.post('/create-program', async (request, reply) => {
+    const { id, name, difficulty, description, types, durations } = request.body as {
+      id: string;
+      name: string;
+      difficulty: string;
+      description: string;
+      types: string | string[];
+      durations: string | string[];
+    };
+
+    const typesArray = Array.isArray(types) ? types : (types ? [types] : []);
+    const durationsArray = Array.isArray(durations) ? durations : (durations ? [durations] : []);
+
+    const intervals = typesArray.map((type, index) => ({
+      type: type as IntervalType,
+      duration: parseInt(durationsArray[index]),
+    }));
+
+    const newProgram: Omit<Program, 'slowDuration' | 'fastDuration'> = {
+      id,
+      name,
+      difficulty: parseInt(difficulty),
+      description,
+      intervals,
+    };
+
+    try {
+      await saveProgram(newProgram);
+      reply.header('HX-Redirect', '/programs');
+      return reply.status(204).send();
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send('Failed to create program');
+    }
+  });
 }

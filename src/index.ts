@@ -10,6 +10,7 @@ import formbody from '@fastify/formbody';
 import 'dotenv/config';
 import { musicRoutes, subSonicPing} from './music.js';
 import runRoutes from './run.js';
+import programRoutes from './programs.js';
 import { AddCustomFilters } from './filters.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,6 +72,9 @@ fastify.register(musicRoutes, { subsonic });
 
 // Register Run Routes
 fastify.register(runRoutes, { subsonic });
+
+// Register Program Routes
+fastify.register(programRoutes);
 
 // Explorer route
 fastify.get('/explorer', async (request, reply) => {

@@ -2,9 +2,9 @@ import { FastifyInstance } from 'fastify';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import SubsonicAPI from 'subsonic-api';
-import { IntervalType, Program, Run, RunStatus } from './types.js';
+import { Run, RunStatus } from './types.js';
 import { processRun } from './processor.js';
-import { loadPrograms, saveProgram } from './programs.js';
+import { loadPrograms } from './programs.js';
 
 export default async function runRoutes(fastify: FastifyInstance, options: { subsonic: SubsonicAPI }) {
   const { subsonic } = options;
@@ -41,54 +41,6 @@ export default async function runRoutes(fastify: FastifyInstance, options: { sub
     }
     
     return reply.view('runs.njk', { runs });
-  });
-
-  // Run Programs Page
-  fastify.get('/programs', async (request, reply) => {
-    const programs = await loadPrograms();
-    return reply.view('programs.njk', { programs });
-  });
-
-  // Create Program Page
-  fastify.get('/create-program', async (request, reply) => {
-    return reply.view('create-program.njk');
-  });
-
-  // Handle Create Program Submission
-  fastify.post('/create-program', async (request, reply) => {
-    const { id, name, difficulty, description, types, durations } = request.body as {
-      id: string;
-      name: string;
-      difficulty: string;
-      description: string;
-      types: string | string[];
-      durations: string | string[];
-    };
-
-    const typesArray = Array.isArray(types) ? types : (types ? [types] : []);
-    const durationsArray = Array.isArray(durations) ? durations : (durations ? [durations] : []);
-
-    const intervals = typesArray.map((type, index) => ({
-      type: type as IntervalType,
-      duration: parseInt(durationsArray[index]),
-    }));
-
-    const newProgram: Omit<Program, 'slowDuration' | 'fastDuration'> = {
-      id,
-      name,
-      difficulty: parseInt(difficulty),
-      description,
-      intervals,
-    };
-
-    try {
-      await saveProgram(newProgram);
-      reply.header('HX-Redirect', '/programs');
-      return reply.status(204).send();
-    } catch (err) {
-      fastify.log.error(err);
-      return reply.status(500).send('Failed to create program');
-    }
   });
 
   // Run Details Page
