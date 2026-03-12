@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  subsonic-run:
+    build: .
+    image: subsonic-run:latest
+    container_name: subsonic-run
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "4533:4533"
+    environment:
+      - SUBSONIC_URL=http://192.168.4.159:4533
+      - SUBSONIC_USER=${SUBSONIC_USER}
+      - SUBSONIC_PASS=${SUBSONIC_PASS}
+      - LOCAL_SUBSONIC_USER=${LOCAL_SUBSONIC_USER:-}
+      - LOCAL_SUBSONIC_PASS=${LOCAL_SUBSONIC_PASS:-}
+      - MUSIC_LIBRARY_PATH=${MUSIC_LIBRARY_PATH:-}
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output

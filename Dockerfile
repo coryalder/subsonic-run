@@ -25,6 +25,7 @@ RUN npm ci --omit=dev
 # Copy compiled source code and public assets from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/assets ./assets
 # Also copy programs.yaml if the user has customized default programs
 COPY --from=builder /app/programs.yaml ./programs.yaml
 
