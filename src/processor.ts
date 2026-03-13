@@ -234,7 +234,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
                     .outputOptions(
                         '-metadata', `artist=${artistName}`,
                         '-metadata', `album=${albumName}`,
-                        '-metadata', `title=${artists}`
+                        '-metadata', `title=${run.name} feat. ${artists}`
                     )
                     .save(finalOutputPath)
                     .on('end', () => resolve())
@@ -253,6 +253,22 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     
     // 3. Completion
     await updateStatus(RunStatus.COMPLETED, finalOutputPath);
+
+    if (process.env.LOCAL_SUBSONIC_URL) {
+        try {
+            const localSubsonic = new SubsonicAPI({
+                url: process.env.LOCAL_SUBSONIC_URL,
+                auth: {
+                    username: process.env.LOCAL_SUBSONIC_USER || process.env.SUBSONIC_USER || '',
+                    password: process.env.LOCAL_SUBSONIC_PASS || process.env.SUBSONIC_PASS || '',
+                }
+            });
+            await localSubsonic.startScan();
+            console.log('Successfully triggered scan on local Subsonic server');
+        } catch (e) {
+            console.error('Failed to trigger local Subsonic scan:', e);
+        }
+    }
     
     // Clean up temp files
     //await fs.rm(tempDir, { recursive: true, force: true });
