@@ -128,14 +128,42 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
             const songDuration = await getSongDuration(songPath);
             const remainingSongDuration = songDuration - currentSongPosition;
             
-            const clipDuration = Math.min(remainingIntervalDuration, remainingSongDuration);
-            const clipPath = path.join(tempDir, `clip-${clipIndex++}.ts`);
+            let clipDuration = Math.min(remainingIntervalDuration, remainingSongDuration);
+
+            // Avoid clips shorter than crossfadeDuration + 0.5s margin
+            // unless it's the only clip we can get.
+            const crossfadeDuration = 2;
+            const minClipDuration = crossfadeDuration + 0.5;
+            
+            if (clipDuration < minClipDuration) {
+                if (remainingSongDuration <= remainingIntervalDuration) {
+                    // Song is ending too soon. Skip the rest of this song and move to next.
+                    console.log(`Skipping remainder of song ${currentSong.id} (${clipDuration.toFixed(2)}s) to avoid short clip.`);
+                    if (isSlow) {
+                        slowSongIndex = (slowSongIndex + 1) % slowSongs.length;
+                        slowSongPosition = 0;
+                    } else {
+                        fastSongIndex = (fastSongIndex + 1) % fastSongs.length;
+                        fastSongPosition = 0;
+                    }
+                    continue;
+                } else {
+                    // Interval is ending too soon. Just end the interval here.
+                    console.log(`Ending interval early (${clipDuration.toFixed(2)}s remaining) to avoid short clip.`);
+                    remainingIntervalDuration = 0;
+                    continue;
+                }
+            }
+
+            const clipPath = path.join(tempDir, `clip-${clipIndex++}.wav`);
 
             await new Promise<void>((resolve, reject) => {
                 ffmpeg(songPath)
                     .setStartTime(currentSongPosition)
                     .setDuration(clipDuration)
-                    .outputOptions('-c copy')
+                    .audioCodec('pcm_s16le')
+                    .audioFrequency(44100)
+                    .audioChannels(2)
                     .output(clipPath)
                     .on('end', () => resolve())
                     .on('error', (err) => reject(err))
@@ -146,6 +174,7 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
                 duration: clipDuration,
                 isIntervalStart: isFirstClipOfInterval && !isFirstInterval
             });
+            console.log(`Created clip ${clips.length - 1}: ${clipDuration.toFixed(2)}s (interval start: ${isFirstClipOfInterval && !isFirstInterval})`);
             isFirstClipOfInterval = false;
 
             remainingIntervalDuration -= clipDuration;
@@ -189,8 +218,8 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
         } else {
             const crossfadeDuration = 2;
             const complexFilters: string[] = [];
-            let prevOutput = '0:a';
             
+            let prevOutput = '0:a';
             let currentStitchedTime = clips[0].duration;
             const transitionDelays: number[] = [];
 
@@ -211,24 +240,38 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
             clips.forEach(clip => command.input(clip.path));
 
             if (transitionDelays.length > 0) {
-                const baseTransitionInputIndex = clips.length;
-                const delayedOutputs: string[] = [];
+                // Prepare transition sound (resample to match clips)
+                const transitionInputIndex = clips.length;
+                const transitionPath = path.join(process.cwd(), 'assets', 'transition.mp3');
+                command.input(transitionPath);
+
+                const splitOutputs: string[] = [];
                 for (let i = 0; i < transitionDelays.length; i++) {
-                    command.input(path.join(process.cwd(), 'assets', 'transition.mp3'));
-                    const delayMs = Math.round(transitionDelays[i] * 1000);
-                    const delayedOutput = `delayed_t${i}`;
-                    complexFilters.push(`[${baseTransitionInputIndex + i}:a]adelay=delays=${delayMs}:all=1[${delayedOutput}]`);
-                    delayedOutputs.push(`[${delayedOutput}]`);
+                    splitOutputs.push(`t${i}`);
                 }
                 
-                const amixInputs = `[${prevOutput}]` + delayedOutputs.join('');
+                // 1. Resample transition and split it
+                complexFilters.push(`[${transitionInputIndex}:a]aresample=44100,aformat=sample_fmts=s16:channel_layouts=stereo,asplit=${transitionDelays.length}[${splitOutputs.join('][')}]`);
+                
+                const delayedOutputs: string[] = [];
+                for (let i = 0; i < transitionDelays.length; i++) {
+                    const delayMs = Math.round(transitionDelays[i] * 1000);
+                    const delayedOutput = `delayed_t${i}`;
+                    // 2. Delay each split
+                    complexFilters.push(`[t${i}]adelay=${delayMs}|${delayMs}[${delayedOutput}]`);
+                    delayedOutputs.push(delayedOutput);
+                }
+                
+                const amixInputs = `[${prevOutput}]` + delayedOutputs.map(d => `[${d}]`).join('');
                 const numInputs = 1 + transitionDelays.length;
                 const finalMixOutput = `final_mix`;
-                complexFilters.push(`${amixInputs}amix=inputs=${numInputs}:duration=first:dropout_transition=0:normalize=0[${finalMixOutput}]`);
+                // 3. Mix everything
+                complexFilters.push(`${amixInputs}amix=inputs=${numInputs}:duration=first[${finalMixOutput}]`);
                 prevOutput = finalMixOutput;
             }
 
             await new Promise<void>((resolve, reject) => {
+                console.log(`Stitching ${clips.length} clips with complex filter...`);
                 command
                     .complexFilter(complexFilters.join(';'), prevOutput)
                     .outputOptions(
@@ -238,7 +281,11 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
                     )
                     .save(finalOutputPath)
                     .on('end', () => resolve())
-                    .on('error', (err) => reject(err));
+                    .on('error', (err) => {
+                        console.error('FFmpeg complex filter error:', err.message);
+                        console.error('Filter string:', complexFilters.join(';'));
+                        reject(err);
+                    });
             });
         }
 
