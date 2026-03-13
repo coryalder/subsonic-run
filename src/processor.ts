@@ -168,8 +168,24 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
     }
     
     if (clips.length > 0) {
+        const artists = Array.from(new Set((run.songs || []).map(s => s.artist).filter(Boolean))).join(', ');
+        const albumName = run.program?.name || 'Unknown Program';
+        const artistName = 'Subsonic Run';
+
         if (clips.length === 1) {
-            await fs.rename(clips[0].path, finalOutputPath);
+            await new Promise<void>((resolve, reject) => {
+                ffmpeg(clips[0].path)
+                    .outputOptions(
+                        '-c', 'copy',
+                        '-metadata', `artist=${artistName}`,
+                        '-metadata', `album=${albumName}`,
+                        '-metadata', `title=${artists}`
+                    )
+                    .save(finalOutputPath)
+                    .on('end', () => resolve())
+                    .on('error', (err) => reject(err));
+            });
+            await fs.unlink(clips[0].path);
         } else {
             const crossfadeDuration = 2;
             const complexFilters: string[] = [];
@@ -215,6 +231,11 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
             await new Promise<void>((resolve, reject) => {
                 command
                     .complexFilter(complexFilters.join(';'), prevOutput)
+                    .outputOptions(
+                        '-metadata', `artist=${artistName}`,
+                        '-metadata', `album=${albumName}`,
+                        '-metadata', `title=${artists}`
+                    )
                     .save(finalOutputPath)
                     .on('end', () => resolve())
                     .on('error', (err) => reject(err));
@@ -222,7 +243,11 @@ export async function processRun(runId: string, subsonic: SubsonicAPI) {
         }
 
         for (const clip of clips) {
-            await fs.unlink(clip.path);
+            try {
+                await fs.unlink(clip.path);
+            } catch (e) {
+                // Ignore if it's already deleted (e.g. from clips.length === 1 case)
+            }
         }
     }
     
